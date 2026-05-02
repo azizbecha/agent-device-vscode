@@ -1,0 +1,27 @@
+# Demo: log into the sample app and verify the dashboard.
+context platform=ios
+context timeout=10000
+
+env APP_ID=com.example.sampleapp
+env USER_EMAIL=hello@example.io
+
+open ${APP_ID} --relaunch
+snapshot -i
+
+click "label=Sign in"
+wait 500
+
+fill @e3 "${USER_EMAIL}"
+fill @e5 "hunter2"
+click @e7
+
+wait 1000
+find text "Dashboard" exists
+is @e2 visible
+
+screenshot "./out/dashboard.png"
+
+scroll down 0.6
+swipe 200 700 200 200 300
+
+back
