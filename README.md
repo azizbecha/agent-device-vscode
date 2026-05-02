@@ -7,8 +7,8 @@ Author, run, and inspect [agent-device](https://incubator.callstack.com/agent-de
 ## Development
 
 ```bash
-bun install
-bun run watch
+npm install
+npm run watch
 ```
 
 Then press `F5` in VS Code to launch the Extension Development Host.
@@ -16,5 +16,5 @@ Then press `F5` in VS Code to launch the Extension Development Host.
 ## Package
 
 ```bash
-bun run package    # produces a .vsix
+npm run package    # produces a .vsix
 ```
