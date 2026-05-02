@@ -1,0 +1,66 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Agent Device",
+  "scopeName": "source.agent-device",
+  "fileTypes": ["ad"],
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#directive" },
+    { "include": "#command" },
+    { "include": "#string" },
+    { "include": "#elementRef" },
+    { "include": "#variable" },
+    { "include": "#flag" },
+    { "include": "#number" }
+  ],
+  "repository": {
+    "comment": {
+      "name": "comment.line.number-sign.agent-device",
+      "match": "#.*$"
+    },
+    "directive": {
+      "name": "keyword.control.directive.agent-device",
+      "match": "^\\s*\\b(context|env)\\b"
+    },
+    "command": {
+      "name": "keyword.control.command.agent-device",
+      "match": "^\\s*\\b(snapshot|screenshot|appstate|click|press|fill|type|swipe|scroll|find|is|wait|get|record|keyboard|clipboard|alert|push|batch|trigger-app-event|trace|logs|perf|runtime|back|replay|open|close)\\b"
+    },
+    "string": {
+      "name": "string.quoted.double.agent-device",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.agent-device",
+          "match": "\\\\."
+        },
+        { "include": "#variable" }
+      ]
+    },
+    "elementRef": {
+      "name": "variable.parameter.element-ref.agent-device",
+      "match": "@e\\d+"
+    },
+    "variable": {
+      "name": "variable.other.interpolation.agent-device",
+      "match": "\\$\\{[A-Z_][A-Z0-9_]*(?::-[^}]*)?\\}"
+    },
+    "flag": {
+      "patterns": [
+        {
+          "name": "entity.name.tag.flag.long.agent-device",
+          "match": "(?<=\\s)--[a-z][a-z0-9-]*\\b"
+        },
+        {
+          "name": "entity.name.tag.flag.short.agent-device",
+          "match": "(?<=\\s)-[a-z]\\b"
+        }
+      ]
+    },
+    "number": {
+      "name": "constant.numeric.agent-device",
+      "match": "(?<![A-Za-z_@-])-?\\d+(?:\\.\\d+)?\\b"
+    }
+  }
+}

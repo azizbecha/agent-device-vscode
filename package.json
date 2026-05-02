@@ -36,6 +36,13 @@
         "configuration": "./language-configuration.json"
       }
     ],
+    "grammars": [
+      {
+        "language": "agent-device",
+        "scopeName": "source.agent-device",
+        "path": "./syntaxes/agent-device.tmLanguage.json"
+      }
+    ],
     "commands": [
       {
         "command": "agentDevice.runScript",
