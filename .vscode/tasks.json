@@ -2,9 +2,8 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "watch",
-      "type": "shell",
-      "command": "bun run watch",
+      "type": "npm",
+      "script": "watch",
       "isBackground": true,
       "problemMatcher": "$tsc-watch",
       "presentation": { "reveal": "never" },
