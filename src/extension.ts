@@ -18,6 +18,7 @@ import { CommandHoverProvider } from './providers/hoverProvider';
 import { ValueCompletionProvider } from './providers/valueCompletionProvider';
 import { VariableCompletionProvider } from './providers/variableCompletionProvider';
 import { ReplayRunner } from './runners/replayRunner';
+import { formatDuration } from './util/duration';
 
 const LANGUAGE_ID = 'agent-device';
 
@@ -110,13 +111,13 @@ function registerOutputChannelSink(
           output.appendLine(`  ${formatStepIndex(event.index)} …`);
           break;
         case 'stepSuccess':
-          output.appendLine(`  ${formatStepIndex(event.index)} ✓ ${event.durationMs}ms`);
+          output.appendLine(`  ${formatStepIndex(event.index)} ✓ ${formatDuration(event.durationMs)}`);
           break;
         case 'stepFailure':
-          output.appendLine(`  ${formatStepIndex(event.index)} ✗ ${event.durationMs}ms — ${event.error.message}`);
+          output.appendLine(`  ${formatStepIndex(event.index)} ✗ ${formatDuration(event.durationMs)} — ${event.error.message}`);
           break;
         case 'end':
-          output.appendLine(`── ${event.status} in ${event.durationMs}ms`);
+          output.appendLine(`── ${event.status} in ${formatDuration(event.durationMs)}`);
           break;
       }
     }),
@@ -151,7 +152,7 @@ function registerRunNotifier(
           break;
         case 'end':
           if (event.status === 'success') {
-            const summary = `${scriptName} passed (${stepDisplays.length} steps, ${event.durationMs}ms)`;
+            const summary = `${scriptName} passed (${stepDisplays.length} steps, ${formatDuration(event.durationMs)})`;
             vscode.window.setStatusBarMessage(`$(pass) ${summary}`, 5000);
             void vscode.window.showInformationMessage(summary);
           } else if (event.status === 'failure') {

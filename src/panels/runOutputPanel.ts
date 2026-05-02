@@ -232,14 +232,14 @@ const PANEL_JS = `
       const startedAt = state.startedAt;
       elapsedTimer = setInterval(function () {
         const el = document.getElementById('elapsed');
-        if (el) el.textContent = (Date.now() - startedAt) + 'ms';
+        if (el) el.textContent = formatDuration(Date.now() - startedAt);
         const running = document.querySelector('li.step.running');
         if (running) {
           const stepStartedAtAttr = running.getAttribute('data-started-at');
           if (stepStartedAtAttr) {
             const stepStartedAt = Number(stepStartedAtAttr);
             const dur = running.querySelector('.step-duration');
-            if (dur) dur.textContent = (Date.now() - stepStartedAt) + 'ms';
+            if (dur) dur.textContent = formatDuration(Date.now() - stepStartedAt);
           }
         }
       }, 100);
@@ -251,7 +251,7 @@ const PANEL_JS = `
     const name = state.scriptName ? '<span class="script-name" id="reveal">' + esc(state.scriptName) + '</span>' : '';
     const dur = state.status === 'running'
       ? '<span class="duration" id="elapsed">0ms</span>'
-      : (state.durationMs != null ? '<span class="duration">' + state.durationMs + 'ms</span>' : '');
+      : (state.durationMs != null ? '<span class="duration">' + formatDuration(state.durationMs) + '</span>' : '');
     return '<div class="summary">' + status + name + dur + '</div>';
   }
 
@@ -274,7 +274,7 @@ const PANEL_JS = `
 
   function renderStep(step) {
     const isExpanded = expanded.has(step.index);
-    const dur = step.durationMs != null ? step.durationMs + 'ms' : '';
+    const dur = step.durationMs != null ? formatDuration(step.durationMs) : '';
     const startedAt = step.state === 'running' && step.startedAt ? step.startedAt : '';
     const header =
       '<div class="step-header" data-step="' + step.index + '">' +
@@ -376,6 +376,19 @@ const PANEL_JS = `
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  function formatDuration(ms) {
+    const value = Math.max(0, Math.floor(ms));
+    if (value < 1000) return value + 'ms';
+    const seconds = Math.floor(value / 1000);
+    if (seconds < 60) return seconds + 's';
+    const minutes = Math.floor(seconds / 60);
+    const remSeconds = seconds % 60;
+    if (minutes < 60) return remSeconds === 0 ? minutes + 'm' : minutes + 'm ' + remSeconds + 's';
+    const hours = Math.floor(minutes / 60);
+    const remMinutes = minutes % 60;
+    return remMinutes === 0 ? hours + 'h' : hours + 'h ' + remMinutes + 'm';
   }
 
   vscode.postMessage({ type: 'ready' });
