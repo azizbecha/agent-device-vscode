@@ -2,7 +2,7 @@
 context platform=ios
 context timeout=10000
 
-env APP_ID=com.example.sampleapp
+env APP_ID=com.callstack.agentdevice.runner
 env USER_EMAIL=hello@example.io
 
 open ${APP_ID} --relaunch

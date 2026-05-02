@@ -19,7 +19,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:agent-device"
+    "onLanguage:agent-device",
+    "onView:agentDevice.runOutput"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -49,7 +50,25 @@
         "title": "Run Script",
         "category": "Agent Device"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "agent-device",
+          "title": "Agent Device",
+          "icon": "media/agent-device.svg"
+        }
+      ]
+    },
+    "views": {
+      "agent-device": [
+        {
+          "type": "webview",
+          "id": "agentDevice.runOutput",
+          "name": "Run Output"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -60,7 +79,11 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.95.0",
+    "@vscode/codicons": "^0.0.45",
     "@vscode/vsce": "^3.2.0",
     "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "agent-device": "^0.14.7"
   }
 }
