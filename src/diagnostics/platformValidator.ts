@@ -48,23 +48,22 @@ export class PlatformDiagnostics implements vscode.Disposable {
         continue;
       }
 
-      PLATFORM_FLAG.lastIndex = 0;
-      let match: RegExpExecArray | null;
-      while ((match = PLATFORM_FLAG.exec(codePortion)) !== null) {
+      for (const match of codePortion.matchAll(PLATFORM_FLAG)) {
         const value = match[1];
-        if (!value) {
+        if (!value || this.validSet.has(value)) {
           continue;
         }
-        if (!this.validSet.has(value)) {
-          issues.push(this.makeDiagnostic(lineIdx, match, value));
-        }
+        const matchIndex = match.index ?? 0;
+        const valueStart = matchIndex + match[0].length - value.length;
+        issues.push(this.makeDiagnostic(lineIdx, valueStart, value));
       }
 
       const ctx = CONTEXT_PLATFORM_KEY.exec(codePortion);
       if (ctx) {
         const value = ctx[1];
         if (value && !this.validSet.has(value)) {
-          issues.push(this.makeDiagnostic(lineIdx, ctx, value));
+          const valueStart = ctx.index + ctx[0].length - value.length;
+          issues.push(this.makeDiagnostic(lineIdx, valueStart, value));
         }
       }
     }
@@ -72,12 +71,7 @@ export class PlatformDiagnostics implements vscode.Disposable {
     this.collection.set(document.uri, issues);
   }
 
-  private makeDiagnostic(
-    line: number,
-    match: RegExpExecArray,
-    value: string,
-  ): vscode.Diagnostic {
-    const valueStart = match.index + match[0].length - value.length;
+  private makeDiagnostic(line: number, valueStart: number, value: string): vscode.Diagnostic {
     const range = new vscode.Range(line, valueStart, line, valueStart + value.length);
     const expected = this.validPlatforms.map((p) => `"${p}"`).join(' or ');
     const diagnostic = new vscode.Diagnostic(

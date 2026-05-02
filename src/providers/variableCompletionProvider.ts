@@ -62,10 +62,7 @@ function isInsideVariableReference(linePrefix: string): boolean {
 
 function envVariableNames(document: vscode.TextDocument): string[] {
   const names: string[] = [];
-  const text = document.getText();
-  ENV_DECLARATION.lastIndex = 0;
-  let match: RegExpExecArray | null;
-  while ((match = ENV_DECLARATION.exec(text)) !== null) {
+  for (const match of document.getText().matchAll(ENV_DECLARATION)) {
     if (match[1]) {
       names.push(match[1]);
     }
