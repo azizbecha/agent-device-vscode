@@ -32,6 +32,7 @@ export function activate(context: vscode.ExtensionContext): void {
   registerDiagnostics(context);
   registerRunOutputPanel(context, runner);
   registerOutputChannelSink(context, runner, output);
+  registerRunNotifier(context, runner);
   registerCommands(context, runner);
 }
 
@@ -124,6 +125,48 @@ function registerOutputChannelSink(
 
 function formatStepIndex(index: number): string {
   return `step ${String(index + 1).padStart(2, '0')}`;
+}
+
+function registerRunNotifier(
+  context: vscode.ExtensionContext,
+  runner: ReplayRunner,
+): void {
+  let scriptName = '';
+  let stepDisplays: readonly string[] = [];
+  let failedStep: { display: string; error: string } | null = null;
+
+  context.subscriptions.push(
+    runner.onEvent((event) => {
+      switch (event.type) {
+        case 'start':
+          scriptName = event.scriptName;
+          stepDisplays = event.steps.map((s) => s.display);
+          failedStep = null;
+          break;
+        case 'stepFailure':
+          failedStep = {
+            display: stepDisplays[event.index] ?? `step ${event.index + 1}`,
+            error: event.error.message,
+          };
+          break;
+        case 'end':
+          if (event.status === 'success') {
+            const summary = `${scriptName} passed (${stepDisplays.length} steps, ${event.durationMs}ms)`;
+            vscode.window.setStatusBarMessage(`$(pass) ${summary}`, 5000);
+            void vscode.window.showInformationMessage(summary);
+          } else if (event.status === 'failure') {
+            const detail = failedStep
+              ? `${failedStep.display} — ${failedStep.error}`
+              : 'unknown error';
+            vscode.window.setStatusBarMessage(`$(error) ${scriptName} failed`, 5000);
+            void vscode.window.showErrorMessage(`${scriptName} failed: ${detail}`);
+          } else if (event.status === 'cancelled') {
+            vscode.window.setStatusBarMessage(`$(circle-slash) ${scriptName} cancelled`, 5000);
+          }
+          break;
+      }
+    }),
+  );
 }
 
 function registerCommands(
