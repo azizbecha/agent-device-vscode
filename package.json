@@ -1,0 +1,59 @@
+{
+  "name": "agent-device-vscode",
+  "displayName": "Agent Device",
+  "description": "Author, run, and inspect agent-device .ad scripts inside VS Code.",
+  "version": "0.0.1",
+  "publisher": "agent-device",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/azizbecha/agent-device-vscode"
+  },
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Testing",
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:agent-device"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "agent-device",
+        "aliases": [
+          "Agent Device",
+          "agent-device"
+        ],
+        "extensions": [
+          ".ad"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "agentDevice.runScript",
+        "title": "Run Script",
+        "category": "Agent Device"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.95.0",
+    "@vscode/vsce": "^3.2.0",
+    "typescript": "^5.6.0"
+  }
+}
