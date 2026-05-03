@@ -25,7 +25,7 @@ export class ElementRefCompletionProvider implements vscode.CompletionItemProvid
       const item = new vscode.CompletionItem(`@${ref.id}`, vscode.CompletionItemKind.Reference);
       item.insertText = `@${ref.id}`;
       item.detail = formatDetail(ref);
-      item.sortText = `00${idx.toString().padStart(4, '0')}`;
+      item.sortText = idx.toString().padStart(4, '0');
       const md = new vscode.MarkdownString(formatMarkdown(ref));
       md.supportHtml = false;
       item.documentation = md;

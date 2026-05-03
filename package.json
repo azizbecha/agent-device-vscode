@@ -20,7 +20,14 @@
   ],
   "activationEvents": [
     "onLanguage:agent-device",
-    "onView:agentDevice.runOutput"
+    "onView:agentDevice.runOutput",
+    "onView:agentDevice.devices",
+    "onView:agentDevice.settings",
+    "onView:agentDevice.snapshotInspector",
+    "onCommand:agentDevice.newScript",
+    "onCommand:agentDevice.runScript",
+    "onCommand:agentDevice.openLastReport",
+    "onCommand:agentDevice.openSettings"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -91,6 +98,26 @@
         "title": "Open Settings",
         "category": "Agent Device",
         "icon": "$(gear)"
+      },
+      {
+        "command": "agentDevice.refreshSnapshot",
+        "title": "Refresh Snapshot",
+        "category": "Agent Device",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "agentDevice.clearSnapshot",
+        "title": "Clear Snapshot",
+        "category": "Agent Device",
+        "icon": "$(clear-all)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "agentDevice.runScript",
+        "key": "ctrl+shift+enter",
+        "mac": "cmd+shift+enter",
+        "when": "editorLangId == agent-device"
       }
     ],
     "menus": {
@@ -101,9 +128,19 @@
           "group": "navigation@1"
         },
         {
-          "command": "agentDevice.openSettings",
-          "when": "view == agentDevice.devices || view == agentDevice.runOutput",
+          "command": "agentDevice.refreshSnapshot",
+          "when": "view == agentDevice.snapshotInspector",
+          "group": "navigation@1"
+        },
+        {
+          "command": "agentDevice.clearSnapshot",
+          "when": "view == agentDevice.snapshotInspector",
           "group": "navigation@2"
+        },
+        {
+          "command": "agentDevice.openSettings",
+          "when": "view == agentDevice.devices || view == agentDevice.runOutput || view == agentDevice.snapshotInspector",
+          "group": "navigation@9"
         }
       ],
       "view/item/context": [

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { CliRunner } from '../runners/cliRunner';
+import { CliRunner, type BinPath } from '../runners/cliRunner';
 
 export type DevicePlatform = 'ios' | 'android' | 'macos' | 'linux';
 export type DeviceKind = 'simulator' | 'device';
@@ -33,19 +33,33 @@ export class DeviceCatalog implements vscode.Disposable {
   private readonly adbCli: CliRunner;
   private readonly emulatorCli: CliRunner;
   private readonly emitter = new vscode.EventEmitter<void>();
+  private readonly aborter = new AbortController();
   private cache: readonly DeviceEntry[] = [];
   private loading = false;
 
   readonly onDidChange = this.emitter.event;
 
-  constructor(cliPath: string, sdkHome?: string) {
+  constructor(cliPath: BinPath, sdkHome?: string | (() => string | undefined)) {
     this.cli = new CliRunner(cliPath);
-    this.adbCli = new CliRunner(sdkHome ? `${sdkHome}/platform-tools/adb` : 'adb');
-    this.emulatorCli = new CliRunner(sdkHome ? `${sdkHome}/emulator/emulator` : 'emulator');
+    const resolveSdk = (): string | undefined =>
+      typeof sdkHome === 'function' ? sdkHome() : sdkHome;
+    this.adbCli = new CliRunner(() => {
+      const home = resolveSdk();
+      return home ? `${home}/platform-tools/adb` : 'adb';
+    });
+    this.emulatorCli = new CliRunner(() => {
+      const home = resolveSdk();
+      return home ? `${home}/emulator/emulator` : 'emulator';
+    });
   }
 
   dispose(): void {
+    this.aborter.abort();
     this.emitter.dispose();
+  }
+
+  private get signal(): AbortSignal {
+    return this.aborter.signal;
   }
 
   get devices(): readonly DeviceEntry[] {
@@ -126,7 +140,7 @@ export class DeviceCatalog implements vscode.Disposable {
   }
 
   private async runningEmulatorSerials(): Promise<string[]> {
-    const result = await this.adbCli.run(['devices']).catch(() => null);
+    const result = await this.adbCli.run(['devices'], { signal: this.signal }).catch(() => null);
     if (!result || result.exitCode !== 0) {
       return [];
     }
@@ -141,7 +155,7 @@ export class DeviceCatalog implements vscode.Disposable {
   }
 
   private async serialAvdName(serial: string): Promise<string | null> {
-    const r = await this.adbCli.run(['-s', serial, 'emu', 'avd', 'name']).catch(() => null);
+    const r = await this.adbCli.run(['-s', serial, 'emu', 'avd', 'name'], { signal: this.signal }).catch(() => null);
     if (!r || r.exitCode !== 0) {
       return null;
     }
@@ -170,7 +184,9 @@ export class DeviceCatalog implements vscode.Disposable {
 
   private async queryViaAgentDevice(platform: DevicePlatform): Promise<DeviceEntry[]> {
     const result = await this.cli
-      .run(['devices', '--json', '--platform', platform, '--session', SESSION_NAME])
+      .run(['devices', '--json', '--platform', platform, '--session', SESSION_NAME], {
+        signal: this.signal,
+      })
       .catch(() => null);
     if (!result || result.exitCode !== 0) {
       return [];
@@ -204,7 +220,7 @@ export class DeviceCatalog implements vscode.Disposable {
   }
 
   private async listAvds(): Promise<string[]> {
-    const result = await this.emulatorCli.run(['-list-avds']).catch(() => null);
+    const result = await this.emulatorCli.run(['-list-avds'], { signal: this.signal }).catch(() => null);
     if (!result || result.exitCode !== 0) {
       return [];
     }
@@ -249,17 +265,6 @@ function safeParseJson<T>(text: string): T | null {
 interface CliErrorEnvelope {
   readonly success?: boolean;
   readonly error?: { readonly message?: string; readonly code?: string };
-}
-
-function isCliSuccess(stdout: string, exitCode: number): boolean {
-  if (exitCode !== 0) {
-    return false;
-  }
-  const parsed = safeParseJson<CliErrorEnvelope>(stdout);
-  if (parsed && parsed.success === false) {
-    return false;
-  }
-  return true;
 }
 
 function extractCliErrorMessage(stdout: string, stderr: string): string {

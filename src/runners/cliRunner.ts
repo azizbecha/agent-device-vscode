@@ -1,5 +1,7 @@
 import { spawn } from 'node:child_process';
 
+export type BinPath = string | (() => string);
+
 export interface CliExecution {
   readonly exitCode: number;
   readonly stdout: string;
@@ -13,11 +15,15 @@ export interface CliRunOptions {
 }
 
 export class CliRunner {
-  constructor(private readonly binPath: string) {}
+  constructor(private readonly binPath: BinPath) {}
+
+  private resolveBin(): string {
+    return typeof this.binPath === 'function' ? this.binPath() : this.binPath;
+  }
 
   run(argv: readonly string[], options: CliRunOptions = {}): Promise<CliExecution> {
     return new Promise((resolve, reject) => {
-      const proc = spawn(this.binPath, [...argv], {
+      const proc = spawn(this.resolveBin(), [...argv], {
         env: { ...process.env, ...(options.env ?? {}) },
         cwd: options.cwd,
         signal: options.signal,
@@ -40,7 +46,7 @@ export class CliRunner {
   }
 
   spawnDetached(argv: readonly string[], options: CliRunOptions = {}): void {
-    const proc = spawn(this.binPath, [...argv], {
+    const proc = spawn(this.resolveBin(), [...argv], {
       env: { ...process.env, ...(options.env ?? {}) },
       cwd: options.cwd,
       detached: true,
