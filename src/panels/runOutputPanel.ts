@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+import type { HtmlReportWriter } from '../reports/htmlReportWriter';
 import type { ReplayEvent, ReplayRunner, StepDescriptor } from '../runners/replayRunner';
 import type { AdFileIndex } from '../services/adFileIndex';
 
@@ -34,7 +35,7 @@ interface ListedFile {
 
 type PostedState =
   | { kind: 'list'; files: ListedFile[] }
-  | ({ kind: 'run' } & RunState);
+  | ({ kind: 'run'; reportAvailable: boolean } & RunState);
 
 interface IncomingMessage {
   readonly type:
@@ -45,7 +46,8 @@ interface IncomingMessage {
     | 'reveal-script'
     | 'reveal-line'
     | 'show-list'
-    | 'new-file';
+    | 'new-file'
+    | 'open-report';
   readonly lineNumber?: number;
   readonly uri?: string;
 }
@@ -62,11 +64,19 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
     private readonly extensionUri: vscode.Uri,
     runner: ReplayRunner,
     private readonly fileIndex: AdFileIndex,
+    private readonly reportWriter: HtmlReportWriter,
   ) {
     this.disposables.push(runner.onEvent((event) => this.handleRunnerEvent(event)));
     this.disposables.push(
       this.fileIndex.onDidChange(() => {
         if (this.currentView === 'list') {
+          this.postState();
+        }
+      }),
+    );
+    this.disposables.push(
+      this.reportWriter.onDidWriteReport(() => {
+        if (this.currentView === 'run') {
           this.postState();
         }
       }),
@@ -189,6 +199,9 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
       case 'new-file':
         await vscode.commands.executeCommand('agentDevice.newScript');
         break;
+      case 'open-report':
+        await vscode.commands.executeCommand('agentDevice.openLastReport');
+        break;
     }
   }
 
@@ -199,7 +212,7 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
     const state: PostedState =
       this.currentView === 'list'
         ? { kind: 'list', files: this.snapshotFiles() }
-        : { kind: 'run', ...this.runState };
+        : { kind: 'run', reportAvailable: this.reportWriter.lastReportUri !== undefined, ...this.runState };
     this.view.webview.postMessage({ type: 'state', state });
   }
 
@@ -337,11 +350,16 @@ const PANEL_JS = `
   function renderRun() {
     const back = '<div class="actions"><button id="back" class="ghost"><i class="codicon codicon-arrow-left"></i>Back to list</button></div>';
     const summary = renderSummary();
-    const actions = state.status === 'running'
-      ? '<div class="actions"><button id="stop"><i class="codicon codicon-debug-stop"></i>Stop</button></div>'
-      : (state.status === 'idle'
-          ? ''
-          : '<div class="actions"><button id="run">Re-run</button></div>');
+    let actions = '';
+    if (state.status === 'running') {
+      actions = '<div class="actions"><button id="stop"><i class="codicon codicon-debug-stop"></i>Stop</button></div>';
+    } else if (state.status !== 'idle') {
+      const buttons = ['<button id="run">Re-run</button>'];
+      if (state.reportAvailable) {
+        buttons.push('<button id="open-report" class="ghost"><i class="codicon codicon-file-symlink-file"></i>View report</button>');
+      }
+      actions = '<div class="actions">' + buttons.join('') + '</div>';
+    }
     const list = state.steps && state.steps.length
       ? '<ol class="steps">' + state.steps.map(renderStep).join('') + '</ol>'
       : '<div class="placeholder">No steps to show.</div>';
@@ -441,6 +459,9 @@ const PANEL_JS = `
 
     const stopBtn = document.getElementById('stop');
     if (stopBtn) stopBtn.addEventListener('click', function () { vscode.postMessage({ type: 'cancel' }); });
+
+    const reportBtn = document.getElementById('open-report');
+    if (reportBtn) reportBtn.addEventListener('click', function () { vscode.postMessage({ type: 'open-report' }); });
 
     const backBtn = document.getElementById('back');
     if (backBtn) backBtn.addEventListener('click', function () { vscode.postMessage({ type: 'show-list' }); });

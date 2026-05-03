@@ -18,6 +18,7 @@ import { CommandHoverProvider } from './providers/hoverProvider';
 import { RunStepCodeLensProvider } from './providers/runStepCodeLensProvider';
 import { ValueCompletionProvider } from './providers/valueCompletionProvider';
 import { VariableCompletionProvider } from './providers/variableCompletionProvider';
+import { HtmlReportWriter } from './reports/htmlReportWriter';
 import { ReplayRunner } from './runners/replayRunner';
 import { AdFileIndex } from './services/adFileIndex';
 import { DeviceCatalog, type DeviceEntry } from './services/deviceCatalog';
@@ -44,15 +45,19 @@ export function activate(context: vscode.ExtensionContext): void {
   const deviceCatalog = new DeviceCatalog(cliPath);
   context.subscriptions.push(deviceCatalog);
 
+  const reportWriter = new HtmlReportWriter(runner);
+  context.subscriptions.push(reportWriter);
+
   registerLanguageProviders(context);
   registerDiagnostics(context);
-  registerRunOutputPanel(context, runner, fileIndex);
+  registerRunOutputPanel(context, runner, fileIndex, reportWriter);
   registerOutputChannelSink(context, runner, output);
   registerRunNotifier(context, runner);
   registerTestController(context, runner, fileIndex);
   registerDeviceView(context, deviceCatalog);
   registerCommands(context, runner);
   registerDeviceCommands(context, deviceCatalog);
+  registerReportCommands(context, reportWriter);
 }
 
 function registerDeviceView(
@@ -217,11 +222,28 @@ function registerRunOutputPanel(
   context: vscode.ExtensionContext,
   runner: ReplayRunner,
   fileIndex: AdFileIndex,
+  reportWriter: HtmlReportWriter,
 ): void {
-  const panel = new RunOutputPanel(context.extensionUri, runner, fileIndex);
+  const panel = new RunOutputPanel(context.extensionUri, runner, fileIndex, reportWriter);
   context.subscriptions.push(
     panel,
     vscode.window.registerWebviewViewProvider(RunOutputPanel.viewId, panel),
+  );
+}
+
+function registerReportCommands(
+  context: vscode.ExtensionContext,
+  reportWriter: HtmlReportWriter,
+): void {
+  context.subscriptions.push(
+    vscode.commands.registerCommand('agentDevice.openLastReport', async () => {
+      const uri = reportWriter.lastReportUri;
+      if (!uri) {
+        vscode.window.showInformationMessage('No reports yet. Run a script first.');
+        return;
+      }
+      await vscode.env.openExternal(uri);
+    }),
   );
 }
 
