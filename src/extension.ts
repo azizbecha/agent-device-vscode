@@ -15,10 +15,13 @@ import { PlatformDiagnostics } from './diagnostics/platformValidator';
 import { RunOutputPanel } from './panels/runOutputPanel';
 import { CommandCompletionProvider } from './providers/completionProvider';
 import { CommandHoverProvider } from './providers/hoverProvider';
+import { RunStepCodeLensProvider } from './providers/runStepCodeLensProvider';
 import { ValueCompletionProvider } from './providers/valueCompletionProvider';
 import { VariableCompletionProvider } from './providers/variableCompletionProvider';
 import { ReplayRunner } from './runners/replayRunner';
+import { AgentDeviceTestController } from './testing/agentDeviceTestController';
 import { formatDuration } from './util/duration';
+import { pluralize } from './util/pluralize';
 
 const LANGUAGE_ID = 'agent-device';
 
@@ -34,7 +37,16 @@ export function activate(context: vscode.ExtensionContext): void {
   registerRunOutputPanel(context, runner);
   registerOutputChannelSink(context, runner, output);
   registerRunNotifier(context, runner);
+  registerTestController(context, runner);
   registerCommands(context, runner);
+}
+
+function registerTestController(
+  context: vscode.ExtensionContext,
+  runner: ReplayRunner,
+): void {
+  const controller = new AgentDeviceTestController(runner);
+  context.subscriptions.push(controller);
 }
 
 function resolveCliPath(context: vscode.ExtensionContext): string {
@@ -78,6 +90,10 @@ function registerLanguageProviders(context: vscode.ExtensionContext): void {
 
   const hover = new CommandHoverProvider(COMMAND_BY_NAME, DIRECTIVE_BY_NAME);
   context.subscriptions.push(vscode.languages.registerHoverProvider(LANGUAGE_ID, hover));
+
+  context.subscriptions.push(
+    vscode.languages.registerCodeLensProvider(LANGUAGE_ID, new RunStepCodeLensProvider()),
+  );
 }
 
 function registerDiagnostics(context: vscode.ExtensionContext): void {
@@ -105,7 +121,7 @@ function registerOutputChannelSink(
     runner.onEvent((event) => {
       switch (event.type) {
         case 'start':
-          output.appendLine(`▶ run ${event.scriptName} (${event.steps.length} steps)`);
+          output.appendLine(`▶ run ${event.scriptName} (${pluralize(event.steps.length, 'step')})`);
           break;
         case 'stepStart':
           output.appendLine(`  ${formatStepIndex(event.index)} …`);
@@ -152,7 +168,7 @@ function registerRunNotifier(
           break;
         case 'end':
           if (event.status === 'success') {
-            const summary = `${scriptName} passed (${stepDisplays.length} steps, ${formatDuration(event.durationMs)})`;
+            const summary = `${scriptName} passed (${pluralize(stepDisplays.length, 'step')}, ${formatDuration(event.durationMs)})`;
             vscode.window.setStatusBarMessage(`$(pass) ${summary}`, 5000);
             void vscode.window.showInformationMessage(summary);
           } else if (event.status === 'failure') {
@@ -174,23 +190,80 @@ function registerCommands(
   context: vscode.ExtensionContext,
   runner: ReplayRunner,
 ): void {
-  const runScript = vscode.commands.registerCommand('agentDevice.runScript', async () => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor || editor.document.languageId !== LANGUAGE_ID) {
-      vscode.window.showWarningMessage('Open a .ad file to run.');
-      return;
-    }
-    if (editor.document.isDirty) {
-      await editor.document.save();
-    }
-    try {
-      await runner.run(editor.document.uri.fsPath);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      vscode.window.showErrorMessage(`Replay failed: ${message}`);
-    }
-  });
+  const runScript = vscode.commands.registerCommand(
+    'agentDevice.runScript',
+    async (uri?: vscode.Uri) => {
+      const target = await resolveRunTarget(uri);
+      if (!target) {
+        return;
+      }
+      await safeRun(runner, target.scriptPath);
+    },
+  );
   context.subscriptions.push(runScript);
+
+  const runUpTo = vscode.commands.registerCommand(
+    'agentDevice.runScriptUpTo',
+    async (uri: vscode.Uri, lineNumber: number) => {
+      const target = await resolveRunTarget(uri);
+      if (!target) {
+        return;
+      }
+      await safeRun(runner, target.scriptPath, { endAtLine: lineNumber });
+    },
+  );
+  context.subscriptions.push(runUpTo);
+
+  const runLine = vscode.commands.registerCommand(
+    'agentDevice.runScriptLine',
+    async (uri: vscode.Uri, lineNumber: number) => {
+      const target = await resolveRunTarget(uri);
+      if (!target) {
+        return;
+      }
+      await safeRun(runner, target.scriptPath, { onlyLine: lineNumber });
+    },
+  );
+  context.subscriptions.push(runLine);
+
+  const cancelRun = vscode.commands.registerCommand('agentDevice.cancelRun', () => {
+    runner.cancel();
+  });
+  context.subscriptions.push(cancelRun);
+}
+
+async function safeRun(
+  runner: ReplayRunner,
+  scriptPath: string,
+  options?: { endAtLine?: number; onlyLine?: number },
+): Promise<void> {
+  try {
+    await runner.run(scriptPath, options ?? {});
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    vscode.window.showErrorMessage(`Replay failed: ${message}`);
+  }
+}
+
+async function resolveRunTarget(
+  uri: vscode.Uri | undefined,
+): Promise<{ scriptPath: string } | null> {
+  if (uri instanceof vscode.Uri) {
+    const document = await vscode.workspace.openTextDocument(uri);
+    if (document.isDirty) {
+      await document.save();
+    }
+    return { scriptPath: uri.fsPath };
+  }
+  const editor = vscode.window.activeTextEditor;
+  if (!editor || editor.document.languageId !== LANGUAGE_ID) {
+    vscode.window.showWarningMessage('Open a .ad file to run.');
+    return null;
+  }
+  if (editor.document.isDirty) {
+    await editor.document.save();
+  }
+  return { scriptPath: editor.document.uri.fsPath };
 }
 
 export function deactivate(): void {}

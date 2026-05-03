@@ -26,7 +26,7 @@ interface PanelState {
 }
 
 interface IncomingMessage {
-  readonly type: 'ready' | 'run' | 'reveal-script' | 'reveal-line';
+  readonly type: 'ready' | 'run' | 'cancel' | 'reveal-script' | 'reveal-line';
   readonly lineNumber?: number;
 }
 
@@ -116,6 +116,9 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
         break;
       case 'run':
         await vscode.commands.executeCommand('agentDevice.runScript');
+        break;
+      case 'cancel':
+        await vscode.commands.executeCommand('agentDevice.cancelRun');
         break;
       case 'reveal-script':
         if (this.state.scriptPath) {
@@ -220,10 +223,9 @@ const PANEL_JS = `
     }
 
     const summary = renderSummary();
-    const actions = '<div class="actions">' +
-      '<button id="run"' + (state.status === 'running' ? ' disabled' : '') + '>'
-      + (state.status === 'running' ? 'Running…' : 'Re-run') + '</button>' +
-    '</div>';
+    const actions = state.status === 'running'
+      ? '<div class="actions"><button id="stop"><i class="codicon codicon-debug-stop"></i>Stop</button></div>'
+      : '<div class="actions"><button id="run">Re-run</button></div>';
     const list = '<ol class="steps">' + state.steps.map(renderStep).join('') + '</ol>';
     root.innerHTML = summary + actions + list;
     bind();
@@ -319,6 +321,9 @@ const PANEL_JS = `
   function bind() {
     const runBtn = document.getElementById('run');
     if (runBtn) runBtn.addEventListener('click', function () { vscode.postMessage({ type: 'run' }); });
+
+    const stopBtn = document.getElementById('stop');
+    if (stopBtn) stopBtn.addEventListener('click', function () { vscode.postMessage({ type: 'cancel' }); });
 
     const reveal = document.getElementById('reveal');
     if (reveal) reveal.addEventListener('click', function () { vscode.postMessage({ type: 'reveal-script' }); });
