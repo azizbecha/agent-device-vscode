@@ -14,6 +14,7 @@ import { BUILTIN_VARIABLES } from './data/variables';
 import { PlatformDiagnostics } from './diagnostics/platformValidator';
 import { RunOutputPanel } from './panels/runOutputPanel';
 import { SettingsPanel } from './panels/settingsPanel';
+import { SnapshotInspectorPanel } from './panels/snapshotInspectorPanel';
 import { CommandCompletionProvider } from './providers/completionProvider';
 import { ElementRefCompletionProvider } from './providers/elementRefCompletionProvider';
 import { CommandHoverProvider } from './providers/hoverProvider';
@@ -60,6 +61,7 @@ export function activate(context: vscode.ExtensionContext): void {
   registerDiagnostics(context);
   registerRunOutputPanel(context, runner, fileIndex, reportWriter);
   registerSettingsPanel(context, config);
+  registerSnapshotInspector(context, snapshotIndex);
   registerOutputChannelSink(context, runner, output);
   registerRunNotifier(context, runner, config);
   registerTestController(context, runner, fileIndex);
@@ -291,6 +293,17 @@ function registerSettingsPanel(
   context.subscriptions.push(
     panel,
     vscode.window.registerWebviewViewProvider(SettingsPanel.viewId, panel),
+  );
+}
+
+function registerSnapshotInspector(
+  context: vscode.ExtensionContext,
+  snapshotIndex: SnapshotIndex,
+): void {
+  const panel = new SnapshotInspectorPanel(context.extensionUri, snapshotIndex);
+  context.subscriptions.push(
+    panel,
+    vscode.window.registerWebviewViewProvider(SnapshotInspectorPanel.viewId, panel),
   );
 }
 
