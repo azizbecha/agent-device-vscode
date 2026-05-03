@@ -1,5 +1,8 @@
 # Agent Device for VS Code
 
+[![CI](https://github.com/azizbecha/agent-device-vscode/actions/workflows/ci.yml/badge.svg)](https://github.com/azizbecha/agent-device-vscode/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Author, run, and inspect [agent-device](https://incubator.callstack.com/agent-device) `.ad` scripts inside VS Code — Vitest-style.
 
 ![Agent Device for VS Code — overview](media/screenshots/overview.png)
@@ -106,6 +109,10 @@ examples/
 
 The runner spawns the `agent-device` CLI per step (so cancellation kills the in-flight subprocess immediately), parses `.ad` itself for variable interpolation and step-by-step events, and emits a typed event stream that every UI surface consumes.
 
+## Releases
+
+See [CHANGELOG.md](CHANGELOG.md). Publishing is documented in [PUBLISHING.md](PUBLISHING.md).
+
 ## License
 
-MIT.
+[MIT](LICENSE).
