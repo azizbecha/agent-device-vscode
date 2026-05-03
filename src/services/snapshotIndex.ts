@@ -6,9 +6,10 @@ export interface SnapshotRef {
   readonly id: string;
   readonly type?: string;
   readonly label?: string;
+  readonly depth: number;
 }
 
-const REF_LINE = /^\s*@(e\d+)\s+\[([^\]]+)\](?:\s+"((?:[^"\\]|\\.)*)")?/;
+const REF_LINE = /^([ \t]*)@(e\d+)\s+\[([^\]]+)\](?:\s+"((?:[^"\\]|\\.)*)")?/;
 
 export class SnapshotIndex implements vscode.Disposable {
   private readonly emitter = new vscode.EventEmitter<void>();
@@ -75,7 +76,7 @@ export function parseSnapshotRefs(stdout: string): SnapshotRef[] {
     if (!match) {
       continue;
     }
-    const [, id, type, label] = match;
+    const [, indent, id, type, label] = match;
     if (!id || seen.has(id)) {
       continue;
     }
@@ -84,6 +85,7 @@ export function parseSnapshotRefs(stdout: string): SnapshotRef[] {
       id,
       type: type?.trim(),
       label: label ? unescapeLabel(label) : undefined,
+      depth: indentDepth(indent ?? ''),
     });
   }
   return refs;
@@ -95,4 +97,16 @@ function firstToken(line: string): string {
 
 function unescapeLabel(value: string): string {
   return value.replace(/\\(.)/g, '$1');
+}
+
+function indentDepth(indent: string): number {
+  let depth = 0;
+  for (const ch of indent) {
+    if (ch === '\t') {
+      depth += 1;
+    } else {
+      depth += 0.5;
+    }
+  }
+  return Math.floor(depth);
 }

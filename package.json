@@ -155,6 +155,11 @@
         {
           "id": "agentDevice.devices",
           "name": "Devices"
+        },
+        {
+          "type": "webview",
+          "id": "agentDevice.snapshotInspector",
+          "name": "Snapshot"
         }
       ],
       "agent-device": [
