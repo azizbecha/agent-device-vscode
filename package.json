@@ -1,20 +1,37 @@
 {
   "name": "agent-device-vscode",
   "displayName": "Agent Device",
-  "version": "0.0.1",
-  "private": true,
-  "description": "Author, run, and inspect agent-device .ad scripts inside VS Code.",
+  "version": "0.1.0",
+  "description": "Author, run, and inspect agent-device .ad scripts inside your IDE.",
   "categories": [
     "Other",
     "Programming Languages",
     "Testing"
   ],
+  "keywords": [
+    "ad",
+    "agent-device",
+    "android",
+    "appium",
+    "automation",
+    "e2e",
+    "ios",
+    "playwright",
+    "react-native",
+    "replay",
+    "simulator",
+    "testing"
+  ],
+  "homepage": "https://github.com/callstackincubator/agent-device#readme",
+  "bugs": {
+    "url": "https://github.com/callstackincubator/agent-device/issues"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/azizbecha/agent-device-vscode"
+    "url": "https://github.com/callstackincubator/agent-device"
   },
-  "publisher": "agent-device",
+  "publisher": "azizbecha",
   "main": "./out/extension.js",
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -262,6 +279,12 @@
     "onView:agentDevice.settings",
     "onView:agentDevice.snapshotInspector"
   ],
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#3b2860",
+    "theme": "dark"
+  },
+  "preview": true,
   "engines": {
     "vscode": "^1.95.0"
   }
