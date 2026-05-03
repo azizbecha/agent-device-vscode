@@ -19,10 +19,7 @@ export interface CommandsDeps {
   readonly sessionName: () => string;
 }
 
-export function registerCommands(
-  context: vscode.ExtensionContext,
-  deps: CommandsDeps,
-): void {
+export function registerCommands(context: vscode.ExtensionContext, deps: CommandsDeps): void {
   registerRunCommands(context, deps.runner);
   registerDeviceCommands(context, deps.deviceCatalog);
   registerSnapshotCommands(context, deps.snapshotIndex, deps.resolveCliPath, deps.sessionName);
@@ -30,10 +27,7 @@ export function registerCommands(
   registerSettingsCommand(context);
 }
 
-function registerRunCommands(
-  context: vscode.ExtensionContext,
-  runner: ReplayRunner,
-): void {
+function registerRunCommands(context: vscode.ExtensionContext, runner: ReplayRunner): void {
   context.subscriptions.push(
     vscode.commands.registerCommand('agentDevice.runScript', async (uri?: vscode.Uri) => {
       const target = await resolveRunTarget(uri);
@@ -100,10 +94,7 @@ function registerRunCommands(
   );
 }
 
-function registerDeviceCommands(
-  context: vscode.ExtensionContext,
-  catalog: DeviceCatalog,
-): void {
+function registerDeviceCommands(context: vscode.ExtensionContext, catalog: DeviceCatalog): void {
   context.subscriptions.push(
     vscode.commands.registerCommand('agentDevice.refreshDevices', () => catalog.refresh()),
   );
@@ -189,9 +180,7 @@ function registerSnapshotCommands(
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('agentDevice.clearSnapshot', () =>
-      snapshotIndex.clear(),
-    ),
+    vscode.commands.registerCommand('agentDevice.clearSnapshot', () => snapshotIndex.clear()),
   );
 }
 

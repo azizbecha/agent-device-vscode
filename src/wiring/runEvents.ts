@@ -20,10 +20,14 @@ export function registerOutputChannelSink(
           output.appendLine(`  ${formatStepIndex(event.index)} …`);
           break;
         case 'stepSuccess':
-          output.appendLine(`  ${formatStepIndex(event.index)} ✓ ${formatDuration(event.durationMs)}`);
+          output.appendLine(
+            `  ${formatStepIndex(event.index)} ✓ ${formatDuration(event.durationMs)}`,
+          );
           break;
         case 'stepFailure':
-          output.appendLine(`  ${formatStepIndex(event.index)} ✗ ${formatDuration(event.durationMs)} — ${event.error.message}`);
+          output.appendLine(
+            `  ${formatStepIndex(event.index)} ✗ ${formatDuration(event.durationMs)} — ${event.error.message}`,
+          );
           break;
         case 'end':
           output.appendLine(`── ${event.status} in ${formatDuration(event.durationMs)}`);

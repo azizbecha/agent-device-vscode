@@ -24,8 +24,7 @@ export function createServices(context: vscode.ExtensionContext): ExtensionServi
   context.subscriptions.push(output);
 
   const config = new AgentDeviceConfig();
-  const resolveCliPath = (): string =>
-    config.cliPathOverride() ?? resolveBundledCliPath(context);
+  const resolveCliPath = (): string => config.cliPathOverride() ?? resolveBundledCliPath(context);
 
   const runner = new ReplayRunner({
     cliPath: resolveCliPath,

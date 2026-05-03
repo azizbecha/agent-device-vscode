@@ -1,4 +1,6 @@
-:root { color-scheme: light dark; }
+:root {
+  color-scheme: light dark;
+}
 
 body {
   margin: 0;
@@ -34,8 +36,10 @@ body {
   justify-content: center;
   gap: 4px;
 }
-.scope-btn:hover { background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground)); }
-.scope-btn[aria-selected="true"] {
+.scope-btn:hover {
+  background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+}
+.scope-btn[aria-selected='true'] {
   background: var(--vscode-list-activeSelectionBackground);
   color: var(--vscode-list-activeSelectionForeground);
   border-color: transparent;
@@ -48,7 +52,11 @@ body {
   gap: 12px;
 }
 
-.field { display: flex; flex-direction: column; gap: 4px; }
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 .field-label {
   font-size: 11px;
   font-weight: 600;
@@ -56,9 +64,13 @@ body {
   text-transform: uppercase;
   color: var(--vscode-descriptionForeground);
 }
-.field-row { display: flex; align-items: center; gap: 6px; }
-.field-row input[type="text"],
-.field-row input[type="search"] {
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.field-row input[type='text'],
+.field-row input[type='search'] {
   flex: 1;
   font: inherit;
   padding: 4px 8px;
@@ -71,11 +83,26 @@ body {
 .field-row input:focus {
   border-color: var(--vscode-focusBorder);
 }
-.field-row input::placeholder { color: var(--vscode-input-placeholderForeground); opacity: 0.7; }
+.field-row input::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+  opacity: 0.7;
+}
 
-.field-checkbox { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
-.field-checkbox input { margin: 0; accent-color: var(--vscode-focusBorder, var(--vscode-button-background)); }
-.field-checkbox label { font-size: var(--vscode-font-size); cursor: pointer; user-select: none; }
+.field-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+.field-checkbox input {
+  margin: 0;
+  accent-color: var(--vscode-focusBorder, var(--vscode-button-background));
+}
+.field-checkbox label {
+  font-size: var(--vscode-font-size);
+  cursor: pointer;
+  user-select: none;
+}
 
 .field-hint {
   font-size: 11px;
@@ -97,8 +124,12 @@ body {
   color: var(--vscode-descriptionForeground);
   align-self: flex-start;
 }
-.field-source.from-user      { color: var(--vscode-charts-blue, var(--vscode-textLink-foreground)); }
-.field-source.from-workspace { color: var(--vscode-charts-purple, var(--vscode-textLink-foreground)); }
+.field-source.from-user {
+  color: var(--vscode-charts-blue, var(--vscode-textLink-foreground));
+}
+.field-source.from-workspace {
+  color: var(--vscode-charts-purple, var(--vscode-textLink-foreground));
+}
 
 button.action {
   font: inherit;
@@ -124,7 +155,11 @@ button.action:hover {
   flex-direction: column;
   gap: 6px;
 }
-.footer button { font: inherit; font-size: 12px; padding: 4px 10px; }
+.footer button {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+}
 .link-btn {
   background: transparent;
   border: none;
@@ -134,4 +169,6 @@ button.action:hover {
   padding: 0;
   text-align: left;
 }
-.link-btn:hover { text-decoration: underline; }
+.link-btn:hover {
+  text-decoration: underline;
+}

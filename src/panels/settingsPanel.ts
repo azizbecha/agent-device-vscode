@@ -59,7 +59,12 @@ interface FieldSnapshot {
 
 type IncomingMessage =
   | { readonly type: 'ready' }
-  | { readonly type: 'set'; readonly key: string; readonly value: string | boolean; readonly scope: Scope }
+  | {
+      readonly type: 'set';
+      readonly key: string;
+      readonly value: string | boolean;
+      readonly scope: Scope;
+    }
   | { readonly type: 'reset-field'; readonly key: string; readonly scope: Scope }
   | { readonly type: 'open-native' };
 
@@ -163,4 +168,3 @@ function renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {
     data: { fields: FIELDS },
   });
 }
-

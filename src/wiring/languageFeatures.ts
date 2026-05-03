@@ -35,10 +35,7 @@ export function registerLanguageFeatures(
   registerTestController(context, runner, fileIndex);
 }
 
-function registerProviders(
-  context: vscode.ExtensionContext,
-  snapshotIndex: SnapshotIndex,
-): void {
+function registerProviders(context: vscode.ExtensionContext, snapshotIndex: SnapshotIndex): void {
   const completion = new CommandCompletionProvider(
     COMMANDS,
     DIRECTIVES,

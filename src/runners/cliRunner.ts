@@ -24,7 +24,7 @@ export class CliRunner {
   run(argv: readonly string[], options: CliRunOptions = {}): Promise<CliExecution> {
     return new Promise((resolve, reject) => {
       const proc = spawn(this.resolveBin(), [...argv], {
-        env: { ...process.env, ...(options.env ?? {}) },
+        env: { ...process.env, ...options.env },
         cwd: options.cwd,
         signal: options.signal,
       });
@@ -47,7 +47,7 @@ export class CliRunner {
 
   spawnDetached(argv: readonly string[], options: CliRunOptions = {}): void {
     const proc = spawn(this.resolveBin(), [...argv], {
-      env: { ...process.env, ...(options.env ?? {}) },
+      env: { ...process.env, ...options.env },
       cwd: options.cwd,
       detached: true,
       stdio: 'ignore',

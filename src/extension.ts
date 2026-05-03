@@ -9,12 +9,7 @@ import { registerViews } from './wiring/views';
 export function activate(context: vscode.ExtensionContext): void {
   const services = createServices(context);
 
-  registerLanguageFeatures(
-    context,
-    services.runner,
-    services.fileIndex,
-    services.snapshotIndex,
-  );
+  registerLanguageFeatures(context, services.runner, services.fileIndex, services.snapshotIndex);
 
   registerViews(context, services);
 

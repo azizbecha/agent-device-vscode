@@ -40,10 +40,7 @@ function registerRunOutputPanel(context: vscode.ExtensionContext, deps: ViewsDep
   );
 }
 
-function registerSettingsPanel(
-  context: vscode.ExtensionContext,
-  config: AgentDeviceConfig,
-): void {
+function registerSettingsPanel(context: vscode.ExtensionContext, config: AgentDeviceConfig): void {
   const panel = new SettingsPanel(context.extensionUri, config);
   context.subscriptions.push(
     panel,
@@ -62,10 +59,7 @@ function registerSnapshotInspector(
   );
 }
 
-function registerDeviceTree(
-  context: vscode.ExtensionContext,
-  catalog: DeviceCatalog,
-): void {
+function registerDeviceTree(context: vscode.ExtensionContext, catalog: DeviceCatalog): void {
   const provider = new DeviceTreeProvider(catalog);
   context.subscriptions.push(
     provider,

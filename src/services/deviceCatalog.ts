@@ -155,7 +155,9 @@ export class DeviceCatalog implements vscode.Disposable {
   }
 
   private async serialAvdName(serial: string): Promise<string | null> {
-    const r = await this.adbCli.run(['-s', serial, 'emu', 'avd', 'name'], { signal: this.signal }).catch(() => null);
+    const r = await this.adbCli
+      .run(['-s', serial, 'emu', 'avd', 'name'], { signal: this.signal })
+      .catch(() => null);
     if (!r || r.exitCode !== 0) {
       return null;
     }
@@ -220,7 +222,9 @@ export class DeviceCatalog implements vscode.Disposable {
   }
 
   private async listAvds(): Promise<string[]> {
-    const result = await this.emulatorCli.run(['-list-avds'], { signal: this.signal }).catch(() => null);
+    const result = await this.emulatorCli
+      .run(['-list-avds'], { signal: this.signal })
+      .catch(() => null);
     if (!result || result.exitCode !== 0) {
       return [];
     }

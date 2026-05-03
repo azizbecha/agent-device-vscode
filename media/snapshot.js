@@ -19,18 +19,24 @@
       return;
     }
     const summary = state.scriptName
-      ? state.refs.length + ' element' + (state.refs.length === 1 ? '' : 's') + ' from ' + esc(state.scriptName)
+      ? state.refs.length +
+        ' element' +
+        (state.refs.length === 1 ? '' : 's') +
+        ' from ' +
+        esc(state.scriptName)
       : state.refs.length + ' elements';
     root.innerHTML =
       '<div class="toolbar">' +
-        '<label class="search">' +
-          '<i class="codicon codicon-search"></i>' +
-          '<input id="search" type="search" placeholder="Filter by ref, type, label" autocomplete="off" spellcheck="false" />' +
-        '</label>' +
+      '<label class="search">' +
+      '<i class="codicon codicon-search"></i>' +
+      '<input id="search" type="search" placeholder="Filter by ref, type, label" autocomplete="off" spellcheck="false" />' +
+      '</label>' +
       '</div>' +
-      '<div class="summary">' + summary + '</div>' +
+      '<div class="summary">' +
+      summary +
+      '</div>' +
       '<div class="tree" id="tree">' +
-        state.refs.map(renderRow).join('') +
+      state.refs.map(renderRow).join('') +
       '</div>';
     bind();
     if (query) {
@@ -41,10 +47,12 @@
   }
 
   function renderEmpty() {
-    return '<div class="empty">' +
+    return (
+      '<div class="empty">' +
       'No snapshot yet.<br>' +
       'Run <code>snapshot -i</code> in your .ad to capture one.' +
-    '</div>';
+      '</div>'
+    );
   }
 
   function renderRow(ref) {
@@ -53,34 +61,68 @@
     const label = ref.label;
     const haystack = (ref.id + ' ' + type + ' ' + (label || '')).toLowerCase();
     const labelHtml = label
-      ? '<span class="label"><span class="label-text">' + esc(label) + '</span><span class="label-type">[' + esc(type) + ']</span></span>'
-      : '<span class="label no-label"><span class="label-text">' + esc(type || 'unnamed') + '</span></span>';
-    return '<div class="row" data-id="' + esc(ref.id) + '" data-type="' + esc(type) + '" data-search="' + esc(haystack) + '" style="padding-left:' + (6 + padding) + 'px">' +
-      '<i class="codicon ' + iconForType(type) + ' icon"></i>' +
-      '<span class="ref">@' + esc(ref.id) + '</span>' +
+      ? '<span class="label"><span class="label-text">' +
+        esc(label) +
+        '</span><span class="label-type">[' +
+        esc(type) +
+        ']</span></span>'
+      : '<span class="label no-label"><span class="label-text">' +
+        esc(type || 'unnamed') +
+        '</span></span>';
+    return (
+      '<div class="row" data-id="' +
+      esc(ref.id) +
+      '" data-type="' +
+      esc(type) +
+      '" data-search="' +
+      esc(haystack) +
+      '" style="padding-left:' +
+      (6 + padding) +
+      'px">' +
+      '<i class="codicon ' +
+      iconForType(type) +
+      ' icon"></i>' +
+      '<span class="ref">@' +
+      esc(ref.id) +
+      '</span>' +
       labelHtml +
       '<span class="actions">' +
-        '<button class="action insert" data-action="insert" data-ref="' + esc(ref.id) + '" title="Insert at cursor">→ Insert</button>' +
-        '<button class="action copy" data-action="copy" data-ref="' + esc(ref.id) + '" title="Copy"><i class="codicon codicon-clippy"></i></button>' +
+      '<button class="action insert" data-action="insert" data-ref="' +
+      esc(ref.id) +
+      '" title="Insert at cursor">→ Insert</button>' +
+      '<button class="action copy" data-action="copy" data-ref="' +
+      esc(ref.id) +
+      '" title="Copy"><i class="codicon codicon-clippy"></i></button>' +
       '</span>' +
-    '</div>';
+      '</div>'
+    );
   }
 
   function iconForType(type) {
     switch ((type || '').toLowerCase()) {
-      case 'application': return 'codicon-window';
-      case 'window':      return 'codicon-window';
-      case 'button':      return 'codicon-debug-line-by-line';
+      case 'application':
+        return 'codicon-window';
+      case 'window':
+        return 'codicon-window';
+      case 'button':
+        return 'codicon-debug-line-by-line';
       case 'text':
-      case 'statictext':  return 'codicon-symbol-string';
-      case 'image':       return 'codicon-file-media';
+      case 'statictext':
+        return 'codicon-symbol-string';
+      case 'image':
+        return 'codicon-file-media';
       case 'textfield':
-      case 'searchfield': return 'codicon-edit';
+      case 'searchfield':
+        return 'codicon-edit';
       case 'switch':
-      case 'toggle':      return 'codicon-circle-large-filled';
-      case 'cell':        return 'codicon-symbol-array';
-      case 'other':       return 'codicon-symbol-misc';
-      default:            return 'codicon-symbol-namespace';
+      case 'toggle':
+        return 'codicon-circle-large-filled';
+      case 'cell':
+        return 'codicon-symbol-array';
+      case 'other':
+        return 'codicon-symbol-misc';
+      default:
+        return 'codicon-symbol-namespace';
     }
   }
 

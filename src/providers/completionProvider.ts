@@ -1,9 +1,6 @@
 import * as vscode from 'vscode';
 
-import type {
-  CommandDef,
-  DirectiveDef,
-} from '../data/commands';
+import type { CommandDef, DirectiveDef } from '../data/commands';
 
 interface LineCursorContext {
   readonly inComment: boolean;
@@ -156,7 +153,7 @@ function analyzeCursor(linePrefix: string): LineCursorContext {
   return {
     inComment,
     inString,
-    firstToken: stillTypingFirstWord ? null : tokensBefore[0] ?? null,
+    firstToken: stillTypingFirstWord ? null : (tokensBefore[0] ?? null),
     currentToken,
     tokensBefore,
   };

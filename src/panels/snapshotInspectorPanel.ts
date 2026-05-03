@@ -120,4 +120,3 @@ function renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {
     bodyHtml: '<div id="root"></div>',
   });
 }
-

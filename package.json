@@ -1,35 +1,43 @@
 {
   "name": "agent-device-vscode",
   "displayName": "Agent Device",
-  "description": "Author, run, and inspect agent-device .ad scripts inside VS Code.",
   "version": "0.0.1",
-  "publisher": "agent-device",
   "private": true,
+  "description": "Author, run, and inspect agent-device .ad scripts inside VS Code.",
+  "categories": [
+    "Other",
+    "Programming Languages",
+    "Testing"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/azizbecha/agent-device-vscode"
   },
-  "engines": {
-    "vscode": "^1.95.0"
-  },
-  "categories": [
-    "Programming Languages",
-    "Testing",
-    "Other"
-  ],
-  "activationEvents": [
-    "onLanguage:agent-device",
-    "onView:agentDevice.runOutput",
-    "onView:agentDevice.devices",
-    "onView:agentDevice.settings",
-    "onView:agentDevice.snapshotInspector",
-    "onCommand:agentDevice.newScript",
-    "onCommand:agentDevice.runScript",
-    "onCommand:agentDevice.openLastReport",
-    "onCommand:agentDevice.openSettings"
-  ],
+  "publisher": "agent-device",
   "main": "./out/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
+  },
+  "dependencies": {
+    "agent-device": "^0.14.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "@types/vscode": "^1.95.0",
+    "@vscode/codicons": "^0.0.45",
+    "@vscode/vsce": "^3.2.0",
+    "oxfmt": "^0.47.0",
+    "oxlint": "^1.62.0",
+    "typescript": "^5.6.0"
+  },
   "contributes": {
     "languages": [
       {
@@ -240,20 +248,18 @@
       }
     }
   },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "package": "vsce package"
-  },
-  "devDependencies": {
-    "@types/node": "^22.19.17",
-    "@types/vscode": "^1.95.0",
-    "@vscode/codicons": "^0.0.45",
-    "@vscode/vsce": "^3.2.0",
-    "typescript": "^5.6.0"
-  },
-  "dependencies": {
-    "agent-device": "^0.14.7"
+  "activationEvents": [
+    "onCommand:agentDevice.newScript",
+    "onCommand:agentDevice.openLastReport",
+    "onCommand:agentDevice.openSettings",
+    "onCommand:agentDevice.runScript",
+    "onLanguage:agent-device",
+    "onView:agentDevice.devices",
+    "onView:agentDevice.runOutput",
+    "onView:agentDevice.settings",
+    "onView:agentDevice.snapshotInspector"
+  ],
+  "engines": {
+    "vscode": "^1.95.0"
   }
 }

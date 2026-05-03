@@ -41,7 +41,10 @@ export class HtmlReportWriter implements vscode.Disposable {
 
   readonly onDidWriteReport = this.emitter.event;
 
-  constructor(runner: ReplayRunner, private readonly config: AgentDeviceConfig) {
+  constructor(
+    runner: ReplayRunner,
+    private readonly config: AgentDeviceConfig,
+  ) {
     this.disposables.push(runner.onEvent((event) => this.onRunnerEvent(event)));
   }
 
