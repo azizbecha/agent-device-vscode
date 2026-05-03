@@ -15,6 +15,7 @@ import { PlatformDiagnostics } from './diagnostics/platformValidator';
 import { RunOutputPanel } from './panels/runOutputPanel';
 import { SettingsPanel } from './panels/settingsPanel';
 import { CommandCompletionProvider } from './providers/completionProvider';
+import { ElementRefCompletionProvider } from './providers/elementRefCompletionProvider';
 import { CommandHoverProvider } from './providers/hoverProvider';
 import { RunStepCodeLensProvider } from './providers/runStepCodeLensProvider';
 import { ValueCompletionProvider } from './providers/valueCompletionProvider';
@@ -24,6 +25,7 @@ import { ReplayRunner } from './runners/replayRunner';
 import { AdFileIndex } from './services/adFileIndex';
 import { AgentDeviceConfig } from './services/config';
 import { DeviceCatalog, type DeviceEntry } from './services/deviceCatalog';
+import { SnapshotIndex } from './services/snapshotIndex';
 import { AgentDeviceTestController } from './testing/agentDeviceTestController';
 import { formatDuration } from './util/duration';
 import { pluralize } from './util/pluralize';
@@ -51,7 +53,10 @@ export function activate(context: vscode.ExtensionContext): void {
   const reportWriter = new HtmlReportWriter(runner, config);
   context.subscriptions.push(reportWriter);
 
-  registerLanguageProviders(context);
+  const snapshotIndex = new SnapshotIndex(runner);
+  context.subscriptions.push(snapshotIndex);
+
+  registerLanguageProviders(context, snapshotIndex);
   registerDiagnostics(context);
   registerRunOutputPanel(context, runner, fileIndex, reportWriter);
   registerSettingsPanel(context, config);
@@ -206,7 +211,10 @@ function registerSettingsCommand(context: vscode.ExtensionContext): void {
   );
 }
 
-function registerLanguageProviders(context: vscode.ExtensionContext): void {
+function registerLanguageProviders(
+  context: vscode.ExtensionContext,
+  snapshotIndex: SnapshotIndex,
+): void {
   const completion = new CommandCompletionProvider(
     COMMANDS,
     DIRECTIVES,
@@ -237,6 +245,15 @@ function registerLanguageProviders(context: vscode.ExtensionContext): void {
       LANGUAGE_ID,
       values,
       ...ValueCompletionProvider.triggerCharacters,
+    ),
+  );
+
+  const elementRefs = new ElementRefCompletionProvider(snapshotIndex);
+  context.subscriptions.push(
+    vscode.languages.registerCompletionItemProvider(
+      LANGUAGE_ID,
+      elementRefs,
+      ...ElementRefCompletionProvider.triggerCharacters,
     ),
   );
 
