@@ -20,10 +20,12 @@ import { ValueCompletionProvider } from './providers/valueCompletionProvider';
 import { VariableCompletionProvider } from './providers/variableCompletionProvider';
 import { ReplayRunner } from './runners/replayRunner';
 import { AdFileIndex } from './services/adFileIndex';
+import { DeviceCatalog, type DeviceEntry } from './services/deviceCatalog';
 import { AgentDeviceTestController } from './testing/agentDeviceTestController';
 import { formatDuration } from './util/duration';
 import { pluralize } from './util/pluralize';
 import { SCRIPT_TEMPLATES } from './data/templates';
+import { DeviceTreeProvider, isDeviceNode } from './views/deviceTreeProvider';
 
 const LANGUAGE_ID = 'agent-device';
 
@@ -31,11 +33,16 @@ export function activate(context: vscode.ExtensionContext): void {
   const output = vscode.window.createOutputChannel('Agent Device');
   context.subscriptions.push(output);
 
-  const runner = new ReplayRunner({ cliPath: resolveCliPath(context) });
+  const cliPath = resolveCliPath(context);
+
+  const runner = new ReplayRunner({ cliPath });
   context.subscriptions.push(runner);
 
   const fileIndex = new AdFileIndex();
   context.subscriptions.push(fileIndex);
+
+  const deviceCatalog = new DeviceCatalog(cliPath);
+  context.subscriptions.push(deviceCatalog);
 
   registerLanguageProviders(context);
   registerDiagnostics(context);
@@ -43,7 +50,106 @@ export function activate(context: vscode.ExtensionContext): void {
   registerOutputChannelSink(context, runner, output);
   registerRunNotifier(context, runner);
   registerTestController(context, runner, fileIndex);
+  registerDeviceView(context, deviceCatalog);
   registerCommands(context, runner);
+  registerDeviceCommands(context, deviceCatalog);
+}
+
+function registerDeviceView(
+  context: vscode.ExtensionContext,
+  catalog: DeviceCatalog,
+): void {
+  const provider = new DeviceTreeProvider(catalog);
+  context.subscriptions.push(
+    provider,
+    vscode.window.registerTreeDataProvider(DeviceTreeProvider.viewId, provider),
+  );
+  void catalog.refresh();
+}
+
+function registerDeviceCommands(
+  context: vscode.ExtensionContext,
+  catalog: DeviceCatalog,
+): void {
+  context.subscriptions.push(
+    vscode.commands.registerCommand('agentDevice.refreshDevices', () => catalog.refresh()),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('agentDevice.bootDevice', async (node?: unknown) => {
+      const device = await resolveDeviceTarget(node, catalog, 'shutdown');
+      if (!device) {
+        return;
+      }
+      try {
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: `Booting ${device.name}…`,
+            cancellable: false,
+          },
+          () => catalog.boot(device),
+        );
+        vscode.window.showInformationMessage(`Booted ${device.name}.`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        vscode.window.showErrorMessage(`Failed to boot ${device.name}: ${message}`);
+      }
+    }),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('agentDevice.shutdownDevice', async (node?: unknown) => {
+      const device = await resolveDeviceTarget(node, catalog, 'booted');
+      if (!device) {
+        return;
+      }
+      try {
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: `Shutting down ${device.name}…`,
+            cancellable: false,
+          },
+          () => catalog.shutdown(device),
+        );
+        vscode.window.showInformationMessage(`Shut down ${device.name}.`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        vscode.window.showErrorMessage(`Failed to shut down ${device.name}: ${message}`);
+      }
+    }),
+  );
+}
+
+async function resolveDeviceTarget(
+  node: unknown,
+  catalog: DeviceCatalog,
+  state: 'booted' | 'shutdown',
+): Promise<DeviceEntry | undefined> {
+  if (isDeviceNode(node)) {
+    return node.device;
+  }
+  const wantBooted = state === 'booted';
+  const candidates = catalog.devices.filter((d) => d.booted === wantBooted);
+  if (candidates.length === 0) {
+    vscode.window.showInformationMessage(
+      wantBooted ? 'No booted devices to shut down.' : 'No shutdown devices to boot.',
+    );
+    return undefined;
+  }
+  const picked = await vscode.window.showQuickPick(
+    candidates.map((device) => ({
+      label: device.name,
+      description: `${device.platform} · ${device.kind}`,
+      device,
+    })),
+    {
+      title: wantBooted ? 'Shut down device' : 'Boot device',
+      placeHolder: wantBooted ? 'Pick a device to shut down' : 'Pick a device to boot',
+    },
+  );
+  return picked?.device;
 }
 
 function registerTestController(

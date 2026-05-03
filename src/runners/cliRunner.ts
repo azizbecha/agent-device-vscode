@@ -38,4 +38,14 @@ export class CliRunner {
       });
     });
   }
+
+  spawnDetached(argv: readonly string[], options: CliRunOptions = {}): void {
+    const proc = spawn(this.binPath, [...argv], {
+      env: { ...process.env, ...(options.env ?? {}) },
+      cwd: options.cwd,
+      detached: true,
+      stdio: 'ignore',
+    });
+    proc.unref();
+  }
 }
