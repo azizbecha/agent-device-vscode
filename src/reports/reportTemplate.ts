@@ -121,7 +121,12 @@ function renderStepBody(step: ReportStep): string {
   return `<div class="step-body">${blocks.join('')}</div>`;
 }
 
-function detailsBlock(label: string, text: string, openByDefault: boolean, extraClass = ''): string {
+function detailsBlock(
+  label: string,
+  text: string,
+  openByDefault: boolean,
+  extraClass = '',
+): string {
   return `<details class="${extraClass}"${openByDefault ? ' open' : ''}>
     <summary>
       <span>${escapeHtml(label)}</span>

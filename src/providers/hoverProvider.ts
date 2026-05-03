@@ -1,10 +1,6 @@
 import * as vscode from 'vscode';
 
-import type {
-  CommandDef,
-  DirectiveDef,
-  FlagDef,
-} from '../data/commands';
+import type { CommandDef, DirectiveDef, FlagDef } from '../data/commands';
 
 const TOKEN_REGEX = /(--[a-z][a-z0-9-]*)|(-[a-z])|(@e\d+)|([a-z][a-z0-9-]*)/;
 
@@ -94,7 +90,7 @@ function renderFlag(flag: FlagDef): vscode.Hover {
 
 function firstWord(line: string): string | null {
   const match = /^\s*([A-Za-z][A-Za-z0-9-]*)/.exec(line);
-  return match ? match[1] ?? null : null;
+  return match ? (match[1] ?? null) : null;
 }
 
 function isInsideCommentOrString(line: string, column: number): boolean {

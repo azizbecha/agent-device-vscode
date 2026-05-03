@@ -72,10 +72,7 @@ export class DeviceTreeProvider implements vscode.TreeDataProvider<DeviceNode>, 
     if (element.kind === 'group') {
       const platformLabel = PLATFORM_LABELS[element.platform] ?? element.platform;
       const count = this.catalog.devices.filter((d) => d.platform === element.platform).length;
-      const item = new vscode.TreeItem(
-        platformLabel,
-        vscode.TreeItemCollapsibleState.Expanded,
-      );
+      const item = new vscode.TreeItem(platformLabel, vscode.TreeItemCollapsibleState.Expanded);
       item.description = String(count);
       item.iconPath = new vscode.ThemeIcon(iconForPlatform(element.platform));
       item.contextValue = 'agentDevice.deviceGroup';
@@ -85,9 +82,7 @@ export class DeviceTreeProvider implements vscode.TreeDataProvider<DeviceNode>, 
     const item = new vscode.TreeItem(device.name, vscode.TreeItemCollapsibleState.None);
     item.description = device.kind === 'simulator' ? 'Simulator' : 'Device';
     item.tooltip = `${device.name}\n${device.id}\n${device.kind} · ${device.booted ? 'booted' : 'shutdown'}`;
-    item.contextValue = device.booted
-      ? 'agentDevice.device.booted'
-      : 'agentDevice.device.shutdown';
+    item.contextValue = device.booted ? 'agentDevice.device.booted' : 'agentDevice.device.shutdown';
     item.iconPath = device.booted
       ? new vscode.ThemeIcon('circle-filled', new vscode.ThemeColor('testing.iconPassed'))
       : new vscode.ThemeIcon('circle-large-outline');
@@ -129,9 +124,5 @@ function iconForPlatform(platform: DevicePlatform): string {
 }
 
 export function isDeviceNode(node: unknown): node is DeviceNode & { kind: 'device' } {
-  return (
-    typeof node === 'object' &&
-    node !== null &&
-    (node as { kind?: string }).kind === 'device'
-  );
+  return typeof node === 'object' && node !== null && (node as { kind?: string }).kind === 'device';
 }

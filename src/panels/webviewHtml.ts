@@ -13,10 +13,7 @@ export interface WebviewHtmlOptions {
   readonly data?: unknown;
 }
 
-export function renderWebviewHtml(
-  webview: vscode.Webview,
-  options: WebviewHtmlOptions,
-): string {
+export function renderWebviewHtml(webview: vscode.Webview, options: WebviewHtmlOptions): string {
   const nonce = makeNonce();
   const csp = [
     `default-src 'none'`,

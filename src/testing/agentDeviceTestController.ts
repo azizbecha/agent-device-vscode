@@ -45,14 +45,16 @@ export class AgentDeviceTestController implements vscode.Disposable {
       }),
     );
 
-    this.disposables.push(
-      this.runner.onEvent((event) => this.handlePassiveEvent(event)),
-    );
+    this.disposables.push(this.runner.onEvent((event) => this.handlePassiveEvent(event)));
   }
 
   dispose(): void {
     if (this.adHocRun) {
-      try { this.adHocRun.end(); } catch { /* ignore */ }
+      try {
+        this.adHocRun.end();
+      } catch {
+        /* ignore */
+      }
     }
     for (const disposable of this.disposables) {
       disposable.dispose();
@@ -171,8 +173,7 @@ export class AgentDeviceTestController implements vscode.Disposable {
 
     try {
       await this.runner.run(fileItem.uri.fsPath, { token });
-      const status =
-        endStatus ?? (token.isCancellationRequested ? 'cancelled' : 'success');
+      const status = endStatus ?? (token.isCancellationRequested ? 'cancelled' : 'success');
       binding.finalize(status, Date.now() - startedAt);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -269,7 +270,11 @@ class TestRunBinding {
       return;
     }
     if (this.firstFailure) {
-      this.run.failed(this.fileItem, buildTestMessage(this.firstFailure, this.fileItem), durationMs);
+      this.run.failed(
+        this.fileItem,
+        buildTestMessage(this.firstFailure, this.fileItem),
+        durationMs,
+      );
       return;
     }
     this.run.passed(this.fileItem, durationMs);
@@ -292,7 +297,11 @@ function handleEventForRun(ctx: EventRouter): void {
   switch (event.type) {
     case 'start':
       ctx.setStepLines(event.steps.map((s) => s.lineNumber));
-      run.appendOutput(`▶ ${fileItem.label} (${pluralize(event.steps.length, 'step')})\r\n`, undefined, fileItem);
+      run.appendOutput(
+        `▶ ${fileItem.label} (${pluralize(event.steps.length, 'step')})\r\n`,
+        undefined,
+        fileItem,
+      );
       break;
     case 'stepStart': {
       const child = childForStep(childByLine, ctx.getStepLine(event.index));
@@ -363,9 +372,7 @@ function collectFileItems(
   controller: vscode.TestController,
   request: vscode.TestRunRequest,
 ): vscode.TestItem[] {
-  const targets = request.include?.length
-    ? request.include
-    : collectAllTopLevel(controller);
+  const targets = request.include?.length ? request.include : collectAllTopLevel(controller);
 
   const excluded = new Set(request.exclude?.map((i) => i.id) ?? []);
   const seen = new Set<string>();

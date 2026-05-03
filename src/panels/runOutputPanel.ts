@@ -3,11 +3,7 @@ import * as vscode from 'vscode';
 import type { HtmlReportWriter } from '../reports/htmlReportWriter';
 import type { ReplayEvent, ReplayRunner, StepDescriptor } from '../runners/replayRunner';
 import type { AdFileIndex } from '../services/adFileIndex';
-import {
-  codiconStylesheetUri,
-  mediaUri,
-  renderWebviewHtml,
-} from './webviewHtml';
+import { codiconStylesheetUri, mediaUri, renderWebviewHtml } from './webviewHtml';
 
 type StepState = 'pending' | 'running' | 'passed' | 'failed' | 'skipped';
 
@@ -213,7 +209,11 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
     const state: PostedState =
       this.currentView === 'list'
         ? { kind: 'list', files: this.snapshotFiles() }
-        : { kind: 'run', reportAvailable: this.reportWriter.lastReportUri !== undefined, ...this.runState };
+        : {
+            kind: 'run',
+            reportAvailable: this.reportWriter.lastReportUri !== undefined,
+            ...this.runState,
+          };
     this.view.webview.postMessage({ type: 'state', state });
   }
 

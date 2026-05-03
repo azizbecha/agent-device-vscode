@@ -38,8 +38,18 @@ export const COMMANDS: readonly CommandDef[] = [
     summary: 'Launch an app (by id) or open a URL.',
     signature: 'open <app-id|url>',
     flags: [
-      { name: '--relaunch', summary: 'Force a fresh launch instead of attaching.', hasValue: false },
-      { name: '--platform', summary: 'Target platform.', hasValue: true, valueHint: platformValueHint, valueChoices: SUPPORTED_PLATFORMS },
+      {
+        name: '--relaunch',
+        summary: 'Force a fresh launch instead of attaching.',
+        hasValue: false,
+      },
+      {
+        name: '--platform',
+        summary: 'Target platform.',
+        hasValue: true,
+        valueHint: platformValueHint,
+        valueChoices: SUPPORTED_PLATFORMS,
+      },
     ],
   },
   {
@@ -47,7 +57,13 @@ export const COMMANDS: readonly CommandDef[] = [
     summary: 'Close the active app.',
     signature: 'close',
     flags: [
-      { name: '--platform', summary: 'Target platform.', hasValue: true, valueHint: platformValueHint, valueChoices: SUPPORTED_PLATFORMS },
+      {
+        name: '--platform',
+        summary: 'Target platform.',
+        hasValue: true,
+        valueHint: platformValueHint,
+        valueChoices: SUPPORTED_PLATFORMS,
+      },
     ],
   },
   {
@@ -69,11 +85,27 @@ export const COMMANDS: readonly CommandDef[] = [
     summary: 'Configure runtime hints (e.g. React Native Metro tunnel).',
     signature: 'runtime',
     flags: [
-      { name: '--platform', summary: 'Target platform.', hasValue: true, valueHint: platformValueHint, valueChoices: SUPPORTED_PLATFORMS },
+      {
+        name: '--platform',
+        summary: 'Target platform.',
+        hasValue: true,
+        valueHint: platformValueHint,
+        valueChoices: SUPPORTED_PLATFORMS,
+      },
       { name: '--metro-host', summary: 'Metro bundler host.', hasValue: true, valueHint: '<host>' },
       { name: '--metro-port', summary: 'Metro bundler port.', hasValue: true, valueHint: '<port>' },
-      { name: '--bundle-url', summary: 'Override the JS bundle URL.', hasValue: true, valueHint: '<url>' },
-      { name: '--launch-url', summary: 'Deep-link URL to launch with.', hasValue: true, valueHint: '<url>' },
+      {
+        name: '--bundle-url',
+        summary: 'Override the JS bundle URL.',
+        hasValue: true,
+        valueHint: '<url>',
+      },
+      {
+        name: '--launch-url',
+        summary: 'Deep-link URL to launch with.',
+        hasValue: true,
+        valueHint: '<url>',
+      },
     ],
   },
   {
@@ -87,10 +119,27 @@ export const COMMANDS: readonly CommandDef[] = [
     summary: 'Capture the UI hierarchy with @eN refs.',
     signature: 'snapshot',
     flags: [
-      { name: '--interactive', short: '-i', summary: 'Interactive elements only.', hasValue: false },
+      {
+        name: '--interactive',
+        short: '-i',
+        summary: 'Interactive elements only.',
+        hasValue: false,
+      },
       { name: '--clean', short: '-c', summary: 'Remove empty structural noise.', hasValue: false },
-      { name: '--depth', short: '-d', summary: 'Limit tree depth.', hasValue: true, valueHint: '<N>' },
-      { name: '--scope', short: '-s', summary: 'Filter by label or identifier.', hasValue: true, valueHint: '<query>' },
+      {
+        name: '--depth',
+        short: '-d',
+        summary: 'Limit tree depth.',
+        hasValue: true,
+        valueHint: '<N>',
+      },
+      {
+        name: '--scope',
+        short: '-s',
+        summary: 'Filter by label or identifier.',
+        hasValue: true,
+        valueHint: '<query>',
+      },
       { name: '--raw', summary: 'Full off-screen tree (troubleshooting only).', hasValue: false },
     ],
   },
@@ -100,7 +149,12 @@ export const COMMANDS: readonly CommandDef[] = [
     signature: 'screenshot <path>',
     flags: [
       { name: '--fullscreen', summary: 'Capture the entire screen.', hasValue: false },
-      { name: '--max-size', summary: 'Cap the longer edge in pixels.', hasValue: true, valueHint: '<N>' },
+      {
+        name: '--max-size',
+        summary: 'Cap the longer edge in pixels.',
+        hasValue: true,
+        valueHint: '<N>',
+      },
     ],
   },
   {
@@ -109,11 +163,26 @@ export const COMMANDS: readonly CommandDef[] = [
     signature: 'click @eN | <selector> | <x> <y>',
     flags: [
       { name: '--count', summary: 'Tap repeatedly.', hasValue: true, valueHint: '<N>' },
-      { name: '--interval-ms', summary: 'Delay between repeats.', hasValue: true, valueHint: '<ms>' },
-      { name: '--hold-ms', summary: 'Hold duration before release.', hasValue: true, valueHint: '<ms>' },
+      {
+        name: '--interval-ms',
+        summary: 'Delay between repeats.',
+        hasValue: true,
+        valueHint: '<ms>',
+      },
+      {
+        name: '--hold-ms',
+        summary: 'Hold duration before release.',
+        hasValue: true,
+        valueHint: '<ms>',
+      },
       { name: '--jitter-px', summary: 'Random offset radius.', hasValue: true, valueHint: '<px>' },
       { name: '--double-tap', summary: 'Emit a double tap.', hasValue: false },
-      { name: '--button', summary: 'Pointer button (desktop).', hasValue: true, valueHint: '<primary|secondary|middle>' },
+      {
+        name: '--button',
+        summary: 'Pointer button (desktop).',
+        hasValue: true,
+        valueHint: '<primary|secondary|middle>',
+      },
     ],
   },
   {
@@ -122,11 +191,26 @@ export const COMMANDS: readonly CommandDef[] = [
     signature: 'press <x> <y>',
     flags: [
       { name: '--count', summary: 'Tap repeatedly.', hasValue: true, valueHint: '<N>' },
-      { name: '--interval-ms', summary: 'Delay between repeats.', hasValue: true, valueHint: '<ms>' },
-      { name: '--hold-ms', summary: 'Hold duration before release.', hasValue: true, valueHint: '<ms>' },
+      {
+        name: '--interval-ms',
+        summary: 'Delay between repeats.',
+        hasValue: true,
+        valueHint: '<ms>',
+      },
+      {
+        name: '--hold-ms',
+        summary: 'Hold duration before release.',
+        hasValue: true,
+        valueHint: '<ms>',
+      },
       { name: '--jitter-px', summary: 'Random offset radius.', hasValue: true, valueHint: '<px>' },
       { name: '--double-tap', summary: 'Emit a double tap.', hasValue: false },
-      { name: '--button', summary: 'Pointer button (desktop).', hasValue: true, valueHint: '<primary|secondary|middle>' },
+      {
+        name: '--button',
+        summary: 'Pointer button (desktop).',
+        hasValue: true,
+        valueHint: '<primary|secondary|middle>',
+      },
     ],
   },
   {
@@ -152,7 +236,12 @@ export const COMMANDS: readonly CommandDef[] = [
     flags: [
       { name: '--count', summary: 'Number of swipes.', hasValue: true, valueHint: '<N>' },
       { name: '--pause-ms', summary: 'Pause between swipes.', hasValue: true, valueHint: '<ms>' },
-      { name: '--pattern', summary: 'Stroke pattern.', hasValue: true, valueHint: '<one-way|ping-pong>' },
+      {
+        name: '--pattern',
+        summary: 'Stroke pattern.',
+        hasValue: true,
+        valueHint: '<one-way|ping-pong>',
+      },
     ],
   },
   {
@@ -160,7 +249,12 @@ export const COMMANDS: readonly CommandDef[] = [
     summary: 'Scroll content in a direction.',
     signature: 'scroll <up|down|left|right> <amount>',
     flags: [
-      { name: '--pixels', summary: 'Scroll a fixed number of pixels (mutually exclusive with amount).', hasValue: true, valueHint: '<N>' },
+      {
+        name: '--pixels',
+        summary: 'Scroll a fixed number of pixels (mutually exclusive with amount).',
+        hasValue: true,
+        valueHint: '<N>',
+      },
     ],
   },
   {
@@ -204,16 +298,19 @@ export const COMMANDS: readonly CommandDef[] = [
     name: 'keyboard',
     summary: 'Manage the on-screen or hardware keyboard.',
     signature: 'keyboard <show|hide|press>',
-    flags: [
-      { name: '--key', summary: 'Hardware key name.', hasValue: true, valueHint: '<name>' },
-    ],
+    flags: [{ name: '--key', summary: 'Hardware key name.', hasValue: true, valueHint: '<name>' }],
   },
   {
     name: 'clipboard',
     summary: 'Read or write the device clipboard.',
     signature: 'clipboard <get|set>',
     flags: [
-      { name: '--text', summary: 'Text to write (for `set`).', hasValue: true, valueHint: '<value>' },
+      {
+        name: '--text',
+        summary: 'Text to write (for `set`).',
+        hasValue: true,
+        valueHint: '<value>',
+      },
     ],
   },
   {
@@ -221,16 +318,19 @@ export const COMMANDS: readonly CommandDef[] = [
     summary: 'Handle a system dialog.',
     signature: 'alert <get|wait|accept|dismiss>',
     flags: [
-      { name: '--timeout-ms', summary: 'How long to wait for the alert.', hasValue: true, valueHint: '<ms>' },
+      {
+        name: '--timeout-ms',
+        summary: 'How long to wait for the alert.',
+        hasValue: true,
+        valueHint: '<ms>',
+      },
     ],
   },
   {
     name: 'push',
     summary: 'Simulate a push notification.',
     signature: 'push "<title>" "<body>"',
-    flags: [
-      { name: '--payload', summary: 'JSON payload.', hasValue: true, valueHint: '<json>' },
-    ],
+    flags: [{ name: '--payload', summary: 'JSON payload.', hasValue: true, valueHint: '<json>' }],
   },
   {
     name: 'batch',
@@ -242,17 +342,13 @@ export const COMMANDS: readonly CommandDef[] = [
     name: 'trigger-app-event',
     summary: 'Dispatch an app-defined event via deep link.',
     signature: 'trigger-app-event <event>',
-    flags: [
-      { name: '--payload', summary: 'JSON payload.', hasValue: true, valueHint: '<json>' },
-    ],
+    flags: [{ name: '--payload', summary: 'JSON payload.', hasValue: true, valueHint: '<json>' }],
   },
   {
     name: 'trace',
     summary: 'Capture a low-level session trace.',
     signature: 'trace <start|stop>',
-    flags: [
-      { name: '--out', summary: 'Output path.', hasValue: true, valueHint: '<path>' },
-    ],
+    flags: [{ name: '--out', summary: 'Output path.', hasValue: true, valueHint: '<path>' }],
   },
   {
     name: 'logs',
@@ -261,7 +357,12 @@ export const COMMANDS: readonly CommandDef[] = [
     flags: [
       { name: '--app', summary: 'App id to filter.', hasValue: true, valueHint: '<id>' },
       { name: '--level', summary: 'Minimum log level.', hasValue: true, valueHint: '<warn|error>' },
-      { name: '--mark', summary: 'Insert a labeled timeline marker.', hasValue: true, valueHint: '<label>' },
+      {
+        name: '--mark',
+        summary: 'Insert a labeled timeline marker.',
+        hasValue: true,
+        valueHint: '<label>',
+      },
     ],
   },
   {
@@ -269,8 +370,18 @@ export const COMMANDS: readonly CommandDef[] = [
     summary: 'Measure a performance metric over a window.',
     signature: 'perf',
     flags: [
-      { name: '--metric', summary: 'Which metric to capture.', hasValue: true, valueHint: '<fps|cpu|memory>' },
-      { name: '--window-ms', summary: 'Sampling window length.', hasValue: true, valueHint: '<ms>' },
+      {
+        name: '--metric',
+        summary: 'Which metric to capture.',
+        hasValue: true,
+        valueHint: '<fps|cpu|memory>',
+      },
+      {
+        name: '--window-ms',
+        summary: 'Sampling window length.',
+        hasValue: true,
+        valueHint: '<ms>',
+      },
     ],
   },
 ];
@@ -293,7 +404,14 @@ export const DIRECTIVES: readonly DirectiveDef[] = [
 
 export const FIND_LOCATORS: readonly string[] = ['text', 'label'];
 
-export const FIND_ACTIONS: readonly string[] = ['exists', 'click', 'fill', 'type', 'get_text', 'wait'];
+export const FIND_ACTIONS: readonly string[] = [
+  'exists',
+  'click',
+  'fill',
+  'type',
+  'get_text',
+  'wait',
+];
 
 export const COMMAND_BY_NAME: ReadonlyMap<string, CommandDef> = new Map(
   COMMANDS.map((c) => [c.name, c]),

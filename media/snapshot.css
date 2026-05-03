@@ -1,4 +1,6 @@
-:root { color-scheme: light dark; }
+:root {
+  color-scheme: light dark;
+}
 
 body {
   margin: 0;
@@ -44,7 +46,9 @@ body {
   border-radius: 3px;
   outline: none;
 }
-.search input:focus { border-color: var(--vscode-focusBorder); }
+.search input:focus {
+  border-color: var(--vscode-focusBorder);
+}
 
 .summary {
   font-size: 11px;
@@ -81,22 +85,36 @@ body {
   cursor: pointer;
   user-select: none;
 }
-.row[hidden] { display: none; }
-.row:hover { background: var(--vscode-list-hoverBackground); }
+.row[hidden] {
+  display: none;
+}
+.row:hover {
+  background: var(--vscode-list-hoverBackground);
+}
 
 .row .icon {
   color: var(--vscode-symbolIcon-variableForeground, var(--vscode-foreground));
   font-size: 14px;
   text-align: center;
 }
-.row[data-type="application"] .icon,
-.row[data-type="window"] .icon { color: var(--vscode-symbolIcon-moduleForeground); }
-.row[data-type="button"] .icon { color: var(--vscode-symbolIcon-functionForeground); }
-.row[data-type="text"] .icon,
-.row[data-type="staticText"] .icon { color: var(--vscode-symbolIcon-stringForeground); }
-.row[data-type="image"] .icon { color: var(--vscode-symbolIcon-fileForeground); }
-.row[data-type="textField"] .icon,
-.row[data-type="searchField"] .icon { color: var(--vscode-symbolIcon-fieldForeground); }
+.row[data-type='application'] .icon,
+.row[data-type='window'] .icon {
+  color: var(--vscode-symbolIcon-moduleForeground);
+}
+.row[data-type='button'] .icon {
+  color: var(--vscode-symbolIcon-functionForeground);
+}
+.row[data-type='text'] .icon,
+.row[data-type='staticText'] .icon {
+  color: var(--vscode-symbolIcon-stringForeground);
+}
+.row[data-type='image'] .icon {
+  color: var(--vscode-symbolIcon-fileForeground);
+}
+.row[data-type='textField'] .icon,
+.row[data-type='searchField'] .icon {
+  color: var(--vscode-symbolIcon-fieldForeground);
+}
 
 .row .ref {
   font-family: var(--vscode-editor-font-family);
@@ -108,7 +126,9 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.row .label-text { color: var(--vscode-foreground); }
+.row .label-text {
+  color: var(--vscode-foreground);
+}
 .row .label-type {
   color: var(--vscode-descriptionForeground);
   font-size: 11px;
@@ -125,7 +145,9 @@ body {
   opacity: 0;
   transition: opacity 0.1s;
 }
-.row:hover .actions { opacity: 1; }
+.row:hover .actions {
+  opacity: 1;
+}
 .action {
   font: inherit;
   font-size: 11px;
@@ -143,4 +165,7 @@ body {
   background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
   color: var(--vscode-foreground);
 }
-.action.copied { color: var(--vscode-testing-iconPassed); opacity: 1; }
+.action.copied {
+  color: var(--vscode-testing-iconPassed);
+  opacity: 1;
+}
