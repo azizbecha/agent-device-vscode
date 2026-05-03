@@ -40,6 +40,21 @@ export class SnapshotIndex implements vscode.Disposable {
     return this.currentScriptPath;
   }
 
+  setRefs(refs: readonly SnapshotRef[], scriptPath: string | null = null): void {
+    this.currentRefs = refs;
+    this.currentScriptPath = scriptPath;
+    this.emitter.fire();
+  }
+
+  clear(): void {
+    if (this.currentRefs.length === 0 && this.currentScriptPath === null) {
+      return;
+    }
+    this.currentRefs = [];
+    this.currentScriptPath = null;
+    this.emitter.fire();
+  }
+
   private handleEvent(event: ReplayEvent): void {
     switch (event.type) {
       case 'start':

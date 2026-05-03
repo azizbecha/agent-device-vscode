@@ -1,7 +1,7 @@
 import * as fs from 'node:fs/promises';
 import * as vscode from 'vscode';
 
-import { CliRunner } from './cliRunner';
+import { CliRunner, type BinPath } from './cliRunner';
 import type { ParsedScript } from './scriptParser';
 import { dequote, interpolate, parseScript } from './scriptParser';
 
@@ -45,8 +45,8 @@ export type ReplayEvent =
     };
 
 export interface ReplayRunnerOptions {
-  readonly cliPath: string;
-  readonly sessionName?: string;
+  readonly cliPath: BinPath;
+  readonly sessionName?: string | (() => string);
 }
 
 export interface ReplayRunOptions {
@@ -58,14 +58,14 @@ export interface ReplayRunOptions {
 export class ReplayRunner implements vscode.Disposable {
   private readonly emitter = new vscode.EventEmitter<ReplayEvent>();
   private readonly cli: CliRunner;
-  private readonly sessionName: string;
+  private readonly sessionName: () => string;
   private currentRun: vscode.CancellationTokenSource | null = null;
 
   readonly onEvent = this.emitter.event;
 
   constructor(options: ReplayRunnerOptions) {
     this.cli = new CliRunner(options.cliPath);
-    this.sessionName = options.sessionName ?? 'vscode';
+    this.sessionName = resolveSessionName(options.sessionName);
   }
 
   dispose(): void {
@@ -110,7 +110,7 @@ export class ReplayRunner implements vscode.Disposable {
 
     const builtins: Record<string, string> = {
       AD_PLATFORM: parsed.platform ?? '',
-      AD_SESSION: this.sessionName,
+      AD_SESSION: this.sessionName(),
       AD_FILENAME: scriptPath,
     };
     const allVars: Record<string, string> = { ...builtins, ...parsed.env };
@@ -149,9 +149,12 @@ export class ReplayRunner implements vscode.Disposable {
           break;
         }
 
-        const action = filteredActions[i]!;
+        const action = filteredActions[i];
+        if (!action) {
+          continue;
+        }
         const interpolated = interpolate(action.argv, allVars).map(dequote);
-        const argv = [...interpolated, '--session', this.sessionName];
+        const argv = [...interpolated, '--session', this.sessionName()];
 
         const stepStartedAt = Date.now();
         this.emitter.fire({ type: 'stepStart', index: i, startedAt: stepStartedAt });
@@ -215,6 +218,16 @@ export class ReplayRunner implements vscode.Disposable {
 
 function isAbortError(err: unknown): boolean {
   return err instanceof Error && err.name === 'AbortError';
+}
+
+function resolveSessionName(value: string | (() => string) | undefined): () => string {
+  if (typeof value === 'function') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    return () => value;
+  }
+  return () => 'vscode';
 }
 
 function filterActions(
