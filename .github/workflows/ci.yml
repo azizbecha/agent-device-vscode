@@ -30,6 +30,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: agent-device-vscode-vsix
+          name: agent-device-vsix
           path: '*.vsix'
           if-no-files-found: error
