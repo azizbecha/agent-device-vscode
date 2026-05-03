@@ -1,0 +1,109 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      preRelease:
+        description: 'Publish as pre-release on the VS Code Marketplace'
+        type: boolean
+        default: false
+      openVsx:
+        description: 'Also publish to Open VSX (Cursor / VSCodium / code-server)'
+        type: boolean
+        default: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify tag matches package.json version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag v$TAG_VERSION does not match package.json $PKG_VERSION"
+            exit 1
+          fi
+          echo "Publishing version $PKG_VERSION"
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run format:check
+
+      - run: npm test
+
+      - run: npm run compile
+
+      - run: npm run package
+
+      - name: Publish to VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::error::VSCE_PAT secret is not configured. See PUBLISHING.md."
+            exit 1
+          fi
+          npx vsce publish \
+            --packagePath "$(ls *.vsix | head -1)" \
+            ${{ inputs.preRelease && '--pre-release' || '' }} \
+            --pat "$VSCE_PAT"
+
+      - name: Publish to Open VSX
+        if: ${{ github.event_name == 'push' || inputs.openVsx }}
+        continue-on-error: true
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::warning::OVSX_PAT secret is not configured; skipping Open VSX publish."
+            exit 0
+          fi
+          npx ovsx publish "$(ls *.vsix | head -1)" --pat "$OVSX_PAT"
+
+      - name: Extract CHANGELOG section for this version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          awk -v ver="$PKG_VERSION" '
+            BEGIN { gsub(/\./, "\\.", ver) }
+            $0 ~ "^## \\[" ver "\\]" { flag=1; next }
+            flag && /^## \[/ { exit }
+            flag { print }
+          ' CHANGELOG.md > /tmp/release-notes.md
+          if [ ! -s /tmp/release-notes.md ]; then
+            echo "::warning::No CHANGELOG section found for v$PKG_VERSION; falling back to a placeholder."
+            echo "Release v$PKG_VERSION" > /tmp/release-notes.md
+          fi
+          echo "--- Release notes for v$PKG_VERSION ---"
+          cat /tmp/release-notes.md
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: /tmp/release-notes.md
+          files: '*.vsix'
+          fail_on_unmatched_files: true
+          prerelease: ${{ inputs.preRelease }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-device-vscode-vsix
+          path: '*.vsix'
+          if-no-files-found: error
