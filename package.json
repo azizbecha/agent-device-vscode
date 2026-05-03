@@ -61,8 +61,57 @@
         "title": "New .ad Script",
         "category": "Agent Device",
         "icon": "$(new-file)"
+      },
+      {
+        "command": "agentDevice.refreshDevices",
+        "title": "Refresh Devices",
+        "category": "Agent Device",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "agentDevice.bootDevice",
+        "title": "Boot",
+        "category": "Agent Device",
+        "icon": "$(play)"
+      },
+      {
+        "command": "agentDevice.shutdownDevice",
+        "title": "Shut Down",
+        "category": "Agent Device",
+        "icon": "$(debug-stop)"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "agentDevice.refreshDevices",
+          "when": "view == agentDevice.devices",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "agentDevice.bootDevice",
+          "when": "view == agentDevice.devices && viewItem == agentDevice.device.shutdown",
+          "group": "inline"
+        },
+        {
+          "command": "agentDevice.bootDevice",
+          "when": "view == agentDevice.devices && viewItem == agentDevice.device.shutdown",
+          "group": "1_actions"
+        },
+        {
+          "command": "agentDevice.shutdownDevice",
+          "when": "view == agentDevice.devices && viewItem == agentDevice.device.booted",
+          "group": "inline"
+        },
+        {
+          "command": "agentDevice.shutdownDevice",
+          "when": "view == agentDevice.devices && viewItem == agentDevice.device.booted",
+          "group": "1_actions"
+        }
+      ]
+    },
     "viewsContainers": {
       "panel": [
         {
@@ -78,6 +127,10 @@
           "type": "webview",
           "id": "agentDevice.runOutput",
           "name": "Run Output"
+        },
+        {
+          "id": "agentDevice.devices",
+          "name": "Devices"
         }
       ]
     }
