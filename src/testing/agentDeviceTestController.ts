@@ -12,6 +12,10 @@ export class AgentDeviceTestController implements vscode.Disposable {
 
   private readonly controller: vscode.TestController;
   private readonly disposables: vscode.Disposable[] = [];
+  private internalRunDepth = 0;
+  private adHocBinding: TestRunBinding | null = null;
+  private adHocRun: vscode.TestRun | null = null;
+  private adHocStartedAt = 0;
 
   constructor(
     private readonly runner: ReplayRunner,
@@ -40,9 +44,16 @@ export class AgentDeviceTestController implements vscode.Disposable {
         }
       }),
     );
+
+    this.disposables.push(
+      this.runner.onEvent((event) => this.handlePassiveEvent(event)),
+    );
   }
 
   dispose(): void {
+    if (this.adHocRun) {
+      try { this.adHocRun.end(); } catch { /* ignore */ }
+    }
     for (const disposable of this.disposables) {
       disposable.dispose();
     }
@@ -113,10 +124,6 @@ export class AgentDeviceTestController implements vscode.Disposable {
     );
   }
 
-  private removeFile(uri: vscode.Uri): void {
-    this.controller.items.delete(uri.toString());
-  }
-
   private async handleRunRequest(
     request: vscode.TestRunRequest,
     token: vscode.CancellationToken,
@@ -124,6 +131,7 @@ export class AgentDeviceTestController implements vscode.Disposable {
     const fileItems = collectFileItems(this.controller, request);
     const run = this.controller.createTestRun(request);
 
+    this.internalRunDepth++;
     try {
       for (const fileItem of fileItems) {
         if (token.isCancellationRequested) {
@@ -134,6 +142,7 @@ export class AgentDeviceTestController implements vscode.Disposable {
         await this.runOneFile(run, fileItem, token);
       }
     } finally {
+      this.internalRunDepth--;
       run.end();
     }
   }
@@ -148,59 +157,122 @@ export class AgentDeviceTestController implements vscode.Disposable {
       return;
     }
 
-    const childByLine = new Map<number, vscode.TestItem>();
-    fileItem.children.forEach((child) => {
-      if (child.range) {
-        childByLine.set(child.range.start.line + 1, child);
-      }
-    });
-
-    run.started(fileItem);
-    fileItem.children.forEach((child) => run.enqueued(child));
-
-    const handledChildren = new Set<string>();
-    let stepLineByIndex: readonly number[] = [];
-    let firstFailure: { message: string; stack?: string } | null = null;
+    const binding = new TestRunBinding(run, fileItem);
+    binding.init();
     const startedAt = Date.now();
 
+    let endStatus: 'success' | 'failure' | 'cancelled' | null = null;
     const subscription = this.runner.onEvent((event) => {
-      handleEventForRun({
-        event,
-        run,
-        fileItem,
-        childByLine,
-        handledChildren,
-        getStepLine: (index) => stepLineByIndex[index],
-        setStepLines: (lines) => { stepLineByIndex = lines; },
-        onFailure: (failure) => {
-          if (!firstFailure) {
-            firstFailure = failure;
-          }
-        },
-      });
+      binding.handle(event);
+      if (event.type === 'end') {
+        endStatus = event.status;
+      }
     });
 
     try {
       await this.runner.run(fileItem.uri.fsPath, { token });
-      const durationMs = Date.now() - startedAt;
-      fileItem.children.forEach((child) => {
-        if (!handledChildren.has(child.id)) {
-          run.skipped(child);
-        }
-      });
-      if (token.isCancellationRequested) {
-        run.skipped(fileItem);
-      } else if (firstFailure) {
-        run.failed(fileItem, buildTestMessage(firstFailure, fileItem), durationMs);
-      } else {
-        run.passed(fileItem, durationMs);
-      }
+      const status =
+        endStatus ?? (token.isCancellationRequested ? 'cancelled' : 'success');
+      binding.finalize(status, Date.now() - startedAt);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       run.failed(fileItem, new vscode.TestMessage(message), Date.now() - startedAt);
     } finally {
       subscription.dispose();
     }
+  }
+
+  private handlePassiveEvent(event: ReplayEvent): void {
+    if (this.internalRunDepth > 0) {
+      return;
+    }
+    if (event.type === 'start') {
+      const item = this.findItemForPath(event.scriptPath);
+      if (!item) {
+        return;
+      }
+      const request = new vscode.TestRunRequest([item], undefined, undefined);
+      const run = this.controller.createTestRun(request);
+      const binding = new TestRunBinding(run, item);
+      binding.init();
+      this.adHocBinding = binding;
+      this.adHocRun = run;
+      this.adHocStartedAt = Date.now();
+      binding.handle(event);
+      return;
+    }
+    if (this.adHocBinding && this.adHocRun) {
+      this.adHocBinding.handle(event);
+      if (event.type === 'end') {
+        this.adHocBinding.finalize(event.status, Date.now() - this.adHocStartedAt);
+        this.adHocRun.end();
+        this.adHocBinding = null;
+        this.adHocRun = null;
+      }
+    }
+  }
+
+  private findItemForPath(scriptPath: string): vscode.TestItem | undefined {
+    return this.controller.items.get(vscode.Uri.file(scriptPath).toString());
+  }
+}
+
+class TestRunBinding {
+  private readonly childByLine = new Map<number, vscode.TestItem>();
+  private readonly handledChildren = new Set<string>();
+  private stepLineByIndex: readonly number[] = [];
+  private firstFailure: { message: string; stack?: string } | null = null;
+
+  constructor(
+    private readonly run: vscode.TestRun,
+    private readonly fileItem: vscode.TestItem,
+  ) {
+    fileItem.children.forEach((child) => {
+      if (child.range) {
+        this.childByLine.set(child.range.start.line + 1, child);
+      }
+    });
+  }
+
+  init(): void {
+    this.run.started(this.fileItem);
+    this.fileItem.children.forEach((child) => this.run.enqueued(child));
+  }
+
+  handle(event: ReplayEvent): void {
+    handleEventForRun({
+      event,
+      run: this.run,
+      fileItem: this.fileItem,
+      childByLine: this.childByLine,
+      handledChildren: this.handledChildren,
+      getStepLine: (index) => this.stepLineByIndex[index],
+      setStepLines: (lines) => {
+        this.stepLineByIndex = lines;
+      },
+      onFailure: (failure) => {
+        if (!this.firstFailure) {
+          this.firstFailure = failure;
+        }
+      },
+    });
+  }
+
+  finalize(status: 'success' | 'failure' | 'cancelled', durationMs: number): void {
+    this.fileItem.children.forEach((child) => {
+      if (!this.handledChildren.has(child.id)) {
+        this.run.skipped(child);
+      }
+    });
+    if (status === 'cancelled') {
+      this.run.skipped(this.fileItem);
+      return;
+    }
+    if (this.firstFailure) {
+      this.run.failed(this.fileItem, buildTestMessage(this.firstFailure, this.fileItem), durationMs);
+      return;
+    }
+    this.run.passed(this.fileItem, durationMs);
   }
 }
 
