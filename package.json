@@ -79,6 +79,12 @@
         "title": "Shut Down",
         "category": "Agent Device",
         "icon": "$(debug-stop)"
+      },
+      {
+        "command": "agentDevice.openLastReport",
+        "title": "Open Last Report",
+        "category": "Agent Device",
+        "icon": "$(file-symlink-file)"
       }
     ],
     "menus": {
