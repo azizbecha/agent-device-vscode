@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 import { SCRIPT_TEMPLATES } from '../data/templates';
 import type { HtmlReportWriter } from '../reports/htmlReportWriter';
-import { CliRunner } from '../runners/cliRunner';
+import { CliRunner, type ResolvedBin } from '../runners/cliRunner';
 import type { ReplayRunner } from '../runners/replayRunner';
 import type { DeviceCatalog, DeviceEntry } from '../services/deviceCatalog';
 import { parseSnapshotRefs, type SnapshotIndex } from '../services/snapshotIndex';
@@ -15,7 +15,7 @@ export interface CommandsDeps {
   readonly deviceCatalog: DeviceCatalog;
   readonly reportWriter: HtmlReportWriter;
   readonly snapshotIndex: SnapshotIndex;
-  readonly resolveCliPath: () => string;
+  readonly resolveCliPath: () => ResolvedBin;
   readonly sessionName: () => string;
 }
 
@@ -149,7 +149,7 @@ function registerDeviceCommands(context: vscode.ExtensionContext, catalog: Devic
 function registerSnapshotCommands(
   context: vscode.ExtensionContext,
   snapshotIndex: SnapshotIndex,
-  cliPath: () => string,
+  cliPath: () => ResolvedBin,
   sessionName: () => string,
 ): void {
   const cli = new CliRunner(cliPath);

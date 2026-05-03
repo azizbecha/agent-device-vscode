@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-05-03
+
+### Fixed
+
+- **Run steps now work in installed extensions.** The `node_modules/.bin/agent-device` shim that npm creates locally is not preserved in the packaged `.vsix`, so spawning the bundled CLI failed with `ENOENT` on every step. The extension now spawns the CLI's `.mjs` entrypoint directly via the host's Node runtime (`process.execPath` with `ELECTRON_RUN_AS_NODE=1`), which works in VS Code, Cursor, and other Electron-based forks.
+
 ## [0.1.1] - 2026-05-03
 
 ### Changed
