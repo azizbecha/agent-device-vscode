@@ -22,6 +22,8 @@ jobs:
 
       - run: npm run format:check
 
+      - run: npm test
+
       - run: npm run compile
 
       - run: npm run package

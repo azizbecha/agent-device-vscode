@@ -1,6 +1,12 @@
 .vscode/**
 .vscode-test/**
 src/**
+tests/**
+.github/**
+.oxlintrc.json
+.oxfmtrc.json
+vitest.config.ts
+examples/**
 .gitignore
 .gitattributes
 .git/**
