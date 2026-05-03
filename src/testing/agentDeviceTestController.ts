@@ -2,11 +2,9 @@ import * as vscode from 'vscode';
 
 import type { ReplayEvent, ReplayRunner } from '../runners/replayRunner';
 import { parseScript } from '../runners/scriptParser';
+import type { AdFileIndex } from '../services/adFileIndex';
 import { formatDuration } from '../util/duration';
 import { pluralize } from '../util/pluralize';
-
-const FILE_GLOB = '**/*.ad';
-const EXCLUDE_GLOB = '**/node_modules/**';
 
 export class AgentDeviceTestController implements vscode.Disposable {
   static readonly id = 'agentDevice';
@@ -15,7 +13,10 @@ export class AgentDeviceTestController implements vscode.Disposable {
   private readonly controller: vscode.TestController;
   private readonly disposables: vscode.Disposable[] = [];
 
-  constructor(private readonly runner: ReplayRunner) {
+  constructor(
+    private readonly runner: ReplayRunner,
+    private readonly fileIndex: AdFileIndex,
+  ) {
     this.controller = vscode.tests.createTestController(
       AgentDeviceTestController.id,
       AgentDeviceTestController.label,
@@ -29,13 +30,8 @@ export class AgentDeviceTestController implements vscode.Disposable {
       true,
     );
 
-    void this.discoverInitial();
-
-    const watcher = vscode.workspace.createFileSystemWatcher(FILE_GLOB);
-    watcher.onDidCreate((uri) => void this.upsertFile(uri));
-    watcher.onDidChange((uri) => void this.repopulate(uri));
-    watcher.onDidDelete((uri) => this.removeFile(uri));
-    this.disposables.push(watcher);
+    void this.syncWithIndex();
+    this.disposables.push(this.fileIndex.onDidChange(() => void this.syncWithIndex()));
 
     this.disposables.push(
       vscode.workspace.onDidSaveTextDocument((doc) => {
@@ -52,10 +48,21 @@ export class AgentDeviceTestController implements vscode.Disposable {
     }
   }
 
-  private async discoverInitial(): Promise<void> {
-    const uris = await vscode.workspace.findFiles(FILE_GLOB, EXCLUDE_GLOB);
-    for (const uri of uris) {
+  private async syncWithIndex(): Promise<void> {
+    await this.fileIndex.ready();
+    const seen = new Set<string>();
+    for (const uri of this.fileIndex.files) {
+      seen.add(uri.toString());
       await this.upsertFile(uri);
+    }
+    const stale: string[] = [];
+    this.controller.items.forEach((item) => {
+      if (!seen.has(item.id)) {
+        stale.push(item.id);
+      }
+    });
+    for (const id of stale) {
+      this.controller.items.delete(id);
     }
   }
 

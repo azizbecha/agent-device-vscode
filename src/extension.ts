@@ -19,9 +19,11 @@ import { RunStepCodeLensProvider } from './providers/runStepCodeLensProvider';
 import { ValueCompletionProvider } from './providers/valueCompletionProvider';
 import { VariableCompletionProvider } from './providers/variableCompletionProvider';
 import { ReplayRunner } from './runners/replayRunner';
+import { AdFileIndex } from './services/adFileIndex';
 import { AgentDeviceTestController } from './testing/agentDeviceTestController';
 import { formatDuration } from './util/duration';
 import { pluralize } from './util/pluralize';
+import { SCRIPT_TEMPLATES } from './data/templates';
 
 const LANGUAGE_ID = 'agent-device';
 
@@ -32,20 +34,24 @@ export function activate(context: vscode.ExtensionContext): void {
   const runner = new ReplayRunner({ cliPath: resolveCliPath(context) });
   context.subscriptions.push(runner);
 
+  const fileIndex = new AdFileIndex();
+  context.subscriptions.push(fileIndex);
+
   registerLanguageProviders(context);
   registerDiagnostics(context);
-  registerRunOutputPanel(context, runner);
+  registerRunOutputPanel(context, runner, fileIndex);
   registerOutputChannelSink(context, runner, output);
   registerRunNotifier(context, runner);
-  registerTestController(context, runner);
+  registerTestController(context, runner, fileIndex);
   registerCommands(context, runner);
 }
 
 function registerTestController(
   context: vscode.ExtensionContext,
   runner: ReplayRunner,
+  fileIndex: AdFileIndex,
 ): void {
-  const controller = new AgentDeviceTestController(runner);
+  const controller = new AgentDeviceTestController(runner, fileIndex);
   context.subscriptions.push(controller);
 }
 
@@ -104,8 +110,9 @@ function registerDiagnostics(context: vscode.ExtensionContext): void {
 function registerRunOutputPanel(
   context: vscode.ExtensionContext,
   runner: ReplayRunner,
+  fileIndex: AdFileIndex,
 ): void {
-  const panel = new RunOutputPanel(context.extensionUri, runner);
+  const panel = new RunOutputPanel(context.extensionUri, runner, fileIndex);
   context.subscriptions.push(
     panel,
     vscode.window.registerWebviewViewProvider(RunOutputPanel.viewId, panel),
@@ -230,6 +237,30 @@ function registerCommands(
     runner.cancel();
   });
   context.subscriptions.push(cancelRun);
+
+  const newScript = vscode.commands.registerCommand('agentDevice.newScript', async () => {
+    const picked = await vscode.window.showQuickPick(
+      SCRIPT_TEMPLATES.map((template) => ({
+        label: template.label,
+        description: template.description,
+        template,
+      })),
+      {
+        title: 'New .ad Script',
+        placeHolder: 'Choose a template to start from',
+        matchOnDescription: true,
+      },
+    );
+    if (!picked) {
+      return;
+    }
+    const doc = await vscode.workspace.openTextDocument({
+      language: LANGUAGE_ID,
+      content: picked.template.content,
+    });
+    await vscode.window.showTextDocument(doc);
+  });
+  context.subscriptions.push(newScript);
 }
 
 async function safeRun(

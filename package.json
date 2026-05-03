@@ -55,6 +55,12 @@
         "title": "Cancel Run",
         "category": "Agent Device",
         "icon": "$(debug-stop)"
+      },
+      {
+        "command": "agentDevice.newScript",
+        "title": "New .ad Script",
+        "category": "Agent Device",
+        "icon": "$(new-file)"
       }
     ],
     "viewsContainers": {

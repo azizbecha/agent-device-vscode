@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import type { ReplayEvent, ReplayRunner, StepDescriptor } from '../runners/replayRunner';
+import type { AdFileIndex } from '../services/adFileIndex';
 
 type StepState = 'pending' | 'running' | 'passed' | 'failed' | 'skipped';
 
@@ -16,7 +17,7 @@ interface StepView {
   errorMessage?: string;
 }
 
-interface PanelState {
+interface RunState {
   status: 'idle' | 'running' | 'success' | 'failure' | 'cancelled';
   scriptPath?: string;
   scriptName?: string;
@@ -25,20 +26,51 @@ interface PanelState {
   steps: StepView[];
 }
 
+interface ListedFile {
+  uri: string;
+  relativePath: string;
+  name: string;
+}
+
+type PostedState =
+  | { kind: 'list'; files: ListedFile[] }
+  | ({ kind: 'run' } & RunState);
+
 interface IncomingMessage {
-  readonly type: 'ready' | 'run' | 'cancel' | 'reveal-script' | 'reveal-line';
+  readonly type:
+    | 'ready'
+    | 'run'
+    | 'run-file'
+    | 'cancel'
+    | 'reveal-script'
+    | 'reveal-line'
+    | 'show-list'
+    | 'new-file';
   readonly lineNumber?: number;
+  readonly uri?: string;
 }
 
 export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Disposable {
   static readonly viewId = 'agentDevice.runOutput';
 
   private view: vscode.WebviewView | undefined;
-  private state: PanelState = { status: 'idle', steps: [] };
+  private currentView: 'list' | 'run' = 'list';
+  private runState: RunState = { status: 'idle', steps: [] };
   private readonly disposables: vscode.Disposable[] = [];
 
-  constructor(private readonly extensionUri: vscode.Uri, runner: ReplayRunner) {
+  constructor(
+    private readonly extensionUri: vscode.Uri,
+    runner: ReplayRunner,
+    private readonly fileIndex: AdFileIndex,
+  ) {
     this.disposables.push(runner.onEvent((event) => this.handleRunnerEvent(event)));
+    this.disposables.push(
+      this.fileIndex.onDidChange(() => {
+        if (this.currentView === 'list') {
+          this.postState();
+        }
+      }),
+    );
   }
 
   resolveWebviewView(view: vscode.WebviewView): void {
@@ -49,6 +81,11 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
     };
     view.webview.html = renderHtml(view.webview, this.extensionUri);
     view.webview.onDidReceiveMessage((msg: IncomingMessage) => this.handleMessage(msg));
+    void this.fileIndex.ready().then(() => {
+      if (this.currentView === 'list') {
+        this.postState();
+      }
+    });
     this.postState();
   }
 
@@ -61,7 +98,8 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
   private handleRunnerEvent(event: ReplayEvent): void {
     switch (event.type) {
       case 'start':
-        this.state = {
+        this.currentView = 'run';
+        this.runState = {
           status: 'running',
           scriptPath: event.scriptPath,
           scriptName: event.scriptName,
@@ -70,7 +108,7 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
         };
         break;
       case 'stepStart': {
-        const step = this.state.steps[event.index];
+        const step = this.runState.steps[event.index];
         if (step) {
           step.state = 'running';
           step.startedAt = event.startedAt;
@@ -78,7 +116,7 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
         break;
       }
       case 'stepSuccess': {
-        const step = this.state.steps[event.index];
+        const step = this.runState.steps[event.index];
         if (step) {
           step.state = 'passed';
           step.durationMs = event.durationMs;
@@ -87,7 +125,7 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
         break;
       }
       case 'stepFailure': {
-        const step = this.state.steps[event.index];
+        const step = this.runState.steps[event.index];
         if (step) {
           step.state = 'failed';
           step.durationMs = event.durationMs;
@@ -97,9 +135,9 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
         break;
       }
       case 'end':
-        this.state.status = event.status;
-        this.state.durationMs = event.durationMs;
-        for (const step of this.state.steps) {
+        this.runState.status = event.status;
+        this.runState.durationMs = event.durationMs;
+        for (const step of this.runState.steps) {
           if (step.state === 'pending' || step.state === 'running') {
             step.state = 'skipped';
           }
@@ -117,18 +155,23 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
       case 'run':
         await vscode.commands.executeCommand('agentDevice.runScript');
         break;
+      case 'run-file':
+        if (msg.uri) {
+          await vscode.commands.executeCommand('agentDevice.runScript', vscode.Uri.parse(msg.uri));
+        }
+        break;
       case 'cancel':
         await vscode.commands.executeCommand('agentDevice.cancelRun');
         break;
       case 'reveal-script':
-        if (this.state.scriptPath) {
-          await vscode.window.showTextDocument(vscode.Uri.file(this.state.scriptPath));
+        if (this.runState.scriptPath) {
+          await vscode.window.showTextDocument(vscode.Uri.file(this.runState.scriptPath));
         }
         break;
       case 'reveal-line':
-        if (this.state.scriptPath && typeof msg.lineNumber === 'number') {
+        if (this.runState.scriptPath && typeof msg.lineNumber === 'number') {
           const doc = await vscode.workspace.openTextDocument(
-            vscode.Uri.file(this.state.scriptPath),
+            vscode.Uri.file(this.runState.scriptPath),
           );
           const editor = await vscode.window.showTextDocument(doc);
           const line = Math.max(0, msg.lineNumber - 1);
@@ -139,11 +182,37 @@ export class RunOutputPanel implements vscode.WebviewViewProvider, vscode.Dispos
           editor.selection = new vscode.Selection(line, 0, line, 0);
         }
         break;
+      case 'show-list':
+        this.currentView = 'list';
+        this.postState();
+        break;
+      case 'new-file':
+        await vscode.commands.executeCommand('agentDevice.newScript');
+        break;
     }
   }
 
   private postState(): void {
-    this.view?.webview.postMessage({ type: 'state', state: this.state });
+    if (!this.view) {
+      return;
+    }
+    const state: PostedState =
+      this.currentView === 'list'
+        ? { kind: 'list', files: this.snapshotFiles() }
+        : { kind: 'run', ...this.runState };
+    this.view.webview.postMessage({ type: 'state', state });
+  }
+
+  private snapshotFiles(): ListedFile[] {
+    return this.fileIndex.files
+      .map(
+        (uri): ListedFile => ({
+          uri: uri.toString(),
+          relativePath: vscode.workspace.asRelativePath(uri),
+          name: basename(uri.path),
+        }),
+      )
+      .sort((a, b) => a.relativePath.localeCompare(b.relativePath));
   }
 }
 
@@ -154,6 +223,11 @@ function toPendingStep(descriptor: StepDescriptor): StepView {
     display: descriptor.display,
     state: 'pending',
   };
+}
+
+function basename(p: string): string {
+  const i = p.lastIndexOf('/');
+  return i >= 0 ? p.slice(i + 1) : p;
 }
 
 function renderHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {
@@ -200,7 +274,7 @@ const PANEL_JS = `
 (function () {
   const vscode = acquireVsCodeApi();
   const root = document.getElementById('root');
-  let state = { status: 'idle', steps: [] };
+  let state = { kind: 'list', files: [] };
   let elapsedTimer = null;
   const expanded = new Set();
 
@@ -213,22 +287,65 @@ const PANEL_JS = `
 
   function render() {
     if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
-
-    if (state.status === 'idle') {
-      root.innerHTML =
-        '<div class="actions"><button id="run">Run active .ad</button></div>' +
-        '<div class="placeholder">No runs yet.<br>Open a .ad file and click Run.</div>';
-      bind();
-      return;
+    if (state.kind === 'list') {
+      renderList();
+    } else {
+      renderRun();
     }
+    bind();
+  }
 
+  function renderList() {
+    const hasFiles = state.files && state.files.length > 0;
+    const header =
+      '<div class="list-header">' +
+        '<span class="list-title">' +
+          (hasFiles
+            ? state.files.length + ' .ad ' + (state.files.length === 1 ? 'script' : 'scripts')
+            : 'Agent Device') +
+        '</span>' +
+        '<button id="new-file" class="ghost" title="New from template">' +
+          '<i class="codicon codicon-new-file"></i>New' +
+        '</button>' +
+      '</div>';
+
+    let body;
+    if (!hasFiles) {
+      body =
+        '<div class="empty-state">' +
+          '<i class="codicon codicon-file-code empty-icon"></i>' +
+          '<h3>No .ad scripts yet</h3>' +
+          '<p>Create one from a template, or start from an empty file.</p>' +
+          '<button id="new-file-empty">' +
+            '<i class="codicon codicon-new-file"></i>Create from template' +
+          '</button>' +
+        '</div>';
+    } else {
+      body = '<ol class="files">' +
+        state.files.map(function (file) {
+          return '<li class="file" data-uri="' + esc(file.uri) + '" title="Run">' +
+            '<i class="codicon codicon-file-code"></i>' +
+            '<span class="file-path">' + esc(file.relativePath) + '</span>' +
+            '<i class="codicon codicon-play file-run-hint" title="Run"></i>' +
+          '</li>';
+        }).join('') +
+      '</ol>';
+    }
+    root.innerHTML = header + body;
+  }
+
+  function renderRun() {
+    const back = '<div class="actions"><button id="back" class="ghost"><i class="codicon codicon-arrow-left"></i>Back to list</button></div>';
     const summary = renderSummary();
     const actions = state.status === 'running'
       ? '<div class="actions"><button id="stop"><i class="codicon codicon-debug-stop"></i>Stop</button></div>'
-      : '<div class="actions"><button id="run">Re-run</button></div>';
-    const list = '<ol class="steps">' + state.steps.map(renderStep).join('') + '</ol>';
-    root.innerHTML = summary + actions + list;
-    bind();
+      : (state.status === 'idle'
+          ? ''
+          : '<div class="actions"><button id="run">Re-run</button></div>');
+    const list = state.steps && state.steps.length
+      ? '<ol class="steps">' + state.steps.map(renderStep).join('') + '</ol>'
+      : '<div class="placeholder">No steps to show.</div>';
+    root.innerHTML = back + summary + actions + list;
 
     if (state.status === 'running' && state.startedAt) {
       const startedAt = state.startedAt;
@@ -325,8 +442,24 @@ const PANEL_JS = `
     const stopBtn = document.getElementById('stop');
     if (stopBtn) stopBtn.addEventListener('click', function () { vscode.postMessage({ type: 'cancel' }); });
 
+    const backBtn = document.getElementById('back');
+    if (backBtn) backBtn.addEventListener('click', function () { vscode.postMessage({ type: 'show-list' }); });
+
+    const newBtn = document.getElementById('new-file');
+    if (newBtn) newBtn.addEventListener('click', function () { vscode.postMessage({ type: 'new-file' }); });
+    const newBtnEmpty = document.getElementById('new-file-empty');
+    if (newBtnEmpty) newBtnEmpty.addEventListener('click', function () { vscode.postMessage({ type: 'new-file' }); });
+
     const reveal = document.getElementById('reveal');
     if (reveal) reveal.addEventListener('click', function () { vscode.postMessage({ type: 'reveal-script' }); });
+
+    const fileRows = document.querySelectorAll('li.file');
+    fileRows.forEach(function (row) {
+      row.addEventListener('click', function () {
+        const uri = row.getAttribute('data-uri');
+        if (uri) vscode.postMessage({ type: 'run-file', uri: uri });
+      });
+    });
 
     const expandableHeaders = document.querySelectorAll('li.step.passed > .step-header, li.step.failed > .step-header, li.step.running > .step-header');
     expandableHeaders.forEach(function (header) {
