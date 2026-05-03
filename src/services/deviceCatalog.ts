@@ -38,9 +38,8 @@ export class DeviceCatalog implements vscode.Disposable {
 
   readonly onDidChange = this.emitter.event;
 
-  constructor(cliPath: string) {
+  constructor(cliPath: string, sdkHome?: string) {
     this.cli = new CliRunner(cliPath);
-    const sdkHome = process.env.ANDROID_HOME ?? process.env.ANDROID_SDK_ROOT ?? '';
     this.adbCli = new CliRunner(sdkHome ? `${sdkHome}/platform-tools/adb` : 'adb');
     this.emulatorCli = new CliRunner(sdkHome ? `${sdkHome}/emulator/emulator` : 'emulator');
   }

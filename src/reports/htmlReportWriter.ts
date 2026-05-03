@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 
 import type { ReplayEvent, ReplayRunner } from '../runners/replayRunner';
+import type { AgentDeviceConfig } from '../services/config';
 import {
   renderReport,
   type ReportData,
@@ -40,7 +41,7 @@ export class HtmlReportWriter implements vscode.Disposable {
 
   readonly onDidWriteReport = this.emitter.event;
 
-  constructor(runner: ReplayRunner) {
+  constructor(runner: ReplayRunner, private readonly config: AgentDeviceConfig) {
     this.disposables.push(runner.onEvent((event) => this.onRunnerEvent(event)));
   }
 
@@ -91,8 +92,10 @@ export class HtmlReportWriter implements vscode.Disposable {
       }
       case 'end':
         if (this.current) {
-          const data = finalizeReport(this.current, event.status, event.durationMs);
-          void this.writeToDisk(data);
+          if (this.config.reportEnabled()) {
+            const data = finalizeReport(this.current, event.status, event.durationMs);
+            void this.writeToDisk(data);
+          }
           this.current = null;
         }
         break;

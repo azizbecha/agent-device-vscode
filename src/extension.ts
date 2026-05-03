@@ -13,6 +13,7 @@ import { SUPPORTED_PLATFORMS } from './data/platforms';
 import { BUILTIN_VARIABLES } from './data/variables';
 import { PlatformDiagnostics } from './diagnostics/platformValidator';
 import { RunOutputPanel } from './panels/runOutputPanel';
+import { SettingsPanel } from './panels/settingsPanel';
 import { CommandCompletionProvider } from './providers/completionProvider';
 import { CommandHoverProvider } from './providers/hoverProvider';
 import { RunStepCodeLensProvider } from './providers/runStepCodeLensProvider';
@@ -21,6 +22,7 @@ import { VariableCompletionProvider } from './providers/variableCompletionProvid
 import { HtmlReportWriter } from './reports/htmlReportWriter';
 import { ReplayRunner } from './runners/replayRunner';
 import { AdFileIndex } from './services/adFileIndex';
+import { AgentDeviceConfig } from './services/config';
 import { DeviceCatalog, type DeviceEntry } from './services/deviceCatalog';
 import { AgentDeviceTestController } from './testing/agentDeviceTestController';
 import { formatDuration } from './util/duration';
@@ -34,30 +36,55 @@ export function activate(context: vscode.ExtensionContext): void {
   const output = vscode.window.createOutputChannel('Agent Device');
   context.subscriptions.push(output);
 
-  const cliPath = resolveCliPath(context);
+  const config = new AgentDeviceConfig();
+  const cliPath = config.cliPathOverride() ?? resolveBundledCliPath(context);
 
-  const runner = new ReplayRunner({ cliPath });
+  const runner = new ReplayRunner({ cliPath, sessionName: config.sessionName() });
   context.subscriptions.push(runner);
 
   const fileIndex = new AdFileIndex();
   context.subscriptions.push(fileIndex);
 
-  const deviceCatalog = new DeviceCatalog(cliPath);
+  const deviceCatalog = new DeviceCatalog(cliPath, config.androidSdkPath());
   context.subscriptions.push(deviceCatalog);
 
-  const reportWriter = new HtmlReportWriter(runner);
+  const reportWriter = new HtmlReportWriter(runner, config);
   context.subscriptions.push(reportWriter);
 
   registerLanguageProviders(context);
   registerDiagnostics(context);
   registerRunOutputPanel(context, runner, fileIndex, reportWriter);
+  registerSettingsPanel(context, config);
   registerOutputChannelSink(context, runner, output);
-  registerRunNotifier(context, runner);
+  registerRunNotifier(context, runner, config);
   registerTestController(context, runner, fileIndex);
   registerDeviceView(context, deviceCatalog);
   registerCommands(context, runner);
   registerDeviceCommands(context, deviceCatalog);
   registerReportCommands(context, reportWriter);
+  registerSettingsCommand(context);
+
+  // Suggest a window reload when path-based settings change so newly-spawned
+  // child processes pick up the new binary location.
+  context.subscriptions.push(
+    config.onDidChange(() => {
+      const fresh = new AgentDeviceConfig();
+      const sameCli = (fresh.cliPathOverride() ?? resolveBundledCliPath(context)) === cliPath;
+      const sameSdk = (fresh.androidSdkPath() ?? '') === (config.androidSdkPath() ?? '');
+      if (!sameCli || !sameSdk) {
+        void vscode.window
+          .showInformationMessage(
+            'Agent Device: reload the window to apply path settings.',
+            'Reload',
+          )
+          .then((choice) => {
+            if (choice === 'Reload') {
+              void vscode.commands.executeCommand('workbench.action.reloadWindow');
+            }
+          });
+      }
+    }),
+  );
 }
 
 function registerDeviceView(
@@ -166,9 +193,17 @@ function registerTestController(
   context.subscriptions.push(controller);
 }
 
-function resolveCliPath(context: vscode.ExtensionContext): string {
+function resolveBundledCliPath(context: vscode.ExtensionContext): string {
   const binName = process.platform === 'win32' ? 'agent-device.cmd' : 'agent-device';
   return path.join(context.extensionPath, 'node_modules', '.bin', binName);
+}
+
+function registerSettingsCommand(context: vscode.ExtensionContext): void {
+  context.subscriptions.push(
+    vscode.commands.registerCommand('agentDevice.openSettings', () => {
+      void vscode.commands.executeCommand('workbench.action.openSettings', 'agentDevice');
+    }),
+  );
 }
 
 function registerLanguageProviders(context: vscode.ExtensionContext): void {
@@ -231,6 +266,17 @@ function registerRunOutputPanel(
   );
 }
 
+function registerSettingsPanel(
+  context: vscode.ExtensionContext,
+  config: AgentDeviceConfig,
+): void {
+  const panel = new SettingsPanel(context.extensionUri, config);
+  context.subscriptions.push(
+    panel,
+    vscode.window.registerWebviewViewProvider(SettingsPanel.viewId, panel),
+  );
+}
+
 function registerReportCommands(
   context: vscode.ExtensionContext,
   reportWriter: HtmlReportWriter,
@@ -282,6 +328,7 @@ function formatStepIndex(index: number): string {
 function registerRunNotifier(
   context: vscode.ExtensionContext,
   runner: ReplayRunner,
+  config: AgentDeviceConfig,
 ): void {
   let scriptName = '';
   let stepDisplays: readonly string[] = [];
@@ -302,16 +349,21 @@ function registerRunNotifier(
           };
           break;
         case 'end':
+          const popups = config.notificationsEnabled();
           if (event.status === 'success') {
             const summary = `${scriptName} passed (${pluralize(stepDisplays.length, 'step')}, ${formatDuration(event.durationMs)})`;
             vscode.window.setStatusBarMessage(`$(pass) ${summary}`, 5000);
-            void vscode.window.showInformationMessage(summary);
+            if (popups) {
+              void vscode.window.showInformationMessage(summary);
+            }
           } else if (event.status === 'failure') {
             const detail = failedStep
               ? `${failedStep.display} — ${failedStep.error}`
               : 'unknown error';
             vscode.window.setStatusBarMessage(`$(error) ${scriptName} failed`, 5000);
-            void vscode.window.showErrorMessage(`${scriptName} failed: ${detail}`);
+            if (popups) {
+              void vscode.window.showErrorMessage(`${scriptName} failed: ${detail}`);
+            }
           } else if (event.status === 'cancelled') {
             vscode.window.setStatusBarMessage(`$(circle-slash) ${scriptName} cancelled`, 5000);
           }

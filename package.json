@@ -85,6 +85,12 @@
         "title": "Open Last Report",
         "category": "Agent Device",
         "icon": "$(file-symlink-file)"
+      },
+      {
+        "command": "agentDevice.openSettings",
+        "title": "Open Settings",
+        "category": "Agent Device",
+        "icon": "$(gear)"
       }
     ],
     "menus": {
@@ -92,7 +98,12 @@
         {
           "command": "agentDevice.refreshDevices",
           "when": "view == agentDevice.devices",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "command": "agentDevice.openSettings",
+          "when": "view == agentDevice.devices || view == agentDevice.runOutput",
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [
@@ -119,6 +130,13 @@
       ]
     },
     "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "agent-device-sidebar",
+          "title": "Agent Device",
+          "icon": "media/agent-device.svg"
+        }
+      ],
       "panel": [
         {
           "id": "agent-device",
@@ -128,17 +146,56 @@
       ]
     },
     "views": {
-      "agent-device": [
+      "agent-device-sidebar": [
         {
           "type": "webview",
-          "id": "agentDevice.runOutput",
-          "name": "Run Output"
+          "id": "agentDevice.settings",
+          "name": "Settings"
         },
         {
           "id": "agentDevice.devices",
           "name": "Devices"
         }
+      ],
+      "agent-device": [
+        {
+          "type": "webview",
+          "id": "agentDevice.runOutput",
+          "name": "Run Output"
+        }
       ]
+    },
+    "configuration": {
+      "title": "Agent Device",
+      "properties": {
+        "agentDevice.cliPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine-overridable",
+          "description": "Absolute path to the agent-device CLI binary. Leave empty to use the version bundled with the extension."
+        },
+        "agentDevice.session": {
+          "type": "string",
+          "default": "vscode",
+          "description": "Session name passed to the agent-device daemon for replay runs."
+        },
+        "agentDevice.androidSdkPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine-overridable",
+          "description": "Override for the Android SDK location used to find adb and emulator. Falls back to ANDROID_HOME / ANDROID_SDK_ROOT, then PATH."
+        },
+        "agentDevice.report.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate an HTML report under .agent-device-reports/ after every run."
+        },
+        "agentDevice.notifications.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a popup notification when a run finishes (status bar pill always shows)."
+        }
+      }
     }
   },
   "scripts": {
