@@ -2,6 +2,8 @@
 
 Author, run, and inspect [agent-device](https://incubator.callstack.com/agent-device) `.ad` scripts inside VS Code — Vitest-style.
 
+![Agent Device for VS Code — overview](media/screenshots/overview.png)
+
 ## Features
 
 ### Authoring
@@ -11,6 +13,10 @@ Author, run, and inspect [agent-device](https://incubator.callstack.com/agent-de
 - **Variable completion** inside `${...}` — built-in `AD_*` plus `env`-defined names from the same file
 - **Platform value completion + diagnostic** — suggests `android` / `ios` after `--platform` and `context platform=`, errors on anything else
 - **Hover** docs for commands, directives, and flags
+
+![Command completion](media/screenshots/command-completion.png)
+
+![Variable completion in ${...}](media/screenshots/variable-completion.png)
 
 ### Running
 
@@ -22,9 +28,15 @@ Author, run, and inspect [agent-device](https://incubator.callstack.com/agent-de
 - **Native gutter test icons** — every action line is a child `TestItem` with a `range`, so the editor gutter shows pass/fail icons after each run
 - **Test Explorer integration** — every `.ad` file appears as a `TestItem`; runs from any entry point (panel, CodeLens, palette, native test gutter) all reflect the same state in the Testing view
 
+![Live per-step run with the Test Results streaming](media/screenshots/run-live.png)
+
+![Test Explorer with passed steps and the Run Output panel](media/screenshots/test-explorer.png)
+
 ### Templates
 
 - `+ New` opens a QuickPick with 9 starter templates: empty file, iOS/Android Settings smoke, login flow, search & assert, scroll & discover, swipe gestures, visual baseline, React Native (Metro)
+
+![Template picker](media/screenshots/templates.png)
 
 ### Devices
 
