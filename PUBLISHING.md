@@ -28,11 +28,47 @@ These steps assume the work that's already in this repo: the `package.json` `pub
 
    The token is cached under `~/.vsce`. You won't need to re-paste it for subsequent publishes from the same machine.
 
-## Each release
+## Automated release (preferred)
 
-1. **Bump the version** in `package.json` (semver). Update `CHANGELOG.md` to add a section for the new version and move items out of `[Unreleased]`.
+Tag-driven via GitHub Actions. Push a `v*.*.*` tag to `main` and the **Publish** workflow (`.github/workflows/publish.yml`) runs lint, format, tests, compile, package, publishes to the VS Code Marketplace and Open VSX, and creates a matching GitHub Release with the `.vsix` attached and the corresponding `CHANGELOG.md` section as the body.
 
-2. **Sanity check** — the same checks CI runs:
+### One-time secrets
+
+In the repository settings → Secrets and variables → Actions, add:
+
+- `VSCE_PAT` — Marketplace PAT (required, see one-time setup above)
+- `OVSX_PAT` — Open VSX PAT (optional; if absent the Open VSX step warns and skips)
+
+### Each release
+
+1. Update `CHANGELOG.md` — move items out of `[Unreleased]` into a new dated section.
+2. Run one of:
+
+   ```bash
+   npm run release:patch   # 0.1.0 -> 0.1.1
+   npm run release:minor   # 0.1.0 -> 0.2.0
+   npm run release:major   # 0.1.0 -> 1.0.0
+   ```
+
+   Each script bumps `package.json`, creates a `Release vX.Y.Z` commit, tags `vX.Y.Z`, and pushes both with `--follow-tags`. The push triggers the workflow.
+
+3. Watch the run at <https://github.com/azizbecha/agent-device-vscode/actions/workflows/publish.yml>. The workflow refuses to run if the tag and `package.json` version don't match.
+
+4. Verify the listing at `https://marketplace.visualstudio.com/items?itemName=<publisher>.agent-device-vscode`. Open VSX shows up at `https://open-vsx.org/extension/<publisher>/agent-device-vscode`.
+
+### Manual dispatch
+
+Any time you want a publish without a tag (e.g. re-running a failed publish), use **Actions → Publish → Run workflow** in the GitHub UI. The dispatch supports two checkboxes:
+
+- **Publish as pre-release** — adds `--pre-release` to `vsce publish`. Users opted into pre-releases get the new version; everyone else sees the previous stable.
+- **Also publish to Open VSX** — defaults on; uncheck to skip the Open VSX step.
+
+## Local publish (fallback)
+
+If the workflow is broken or you need to publish from a laptop:
+
+1. Bump the version in `package.json` and update `CHANGELOG.md`.
+2. Sanity-check — the same checks CI runs:
 
    ```bash
    npm run lint
@@ -42,7 +78,7 @@ These steps assume the work that's already in this repo: the `package.json` `pub
    npm run package    # produces agent-device-vscode-<version>.vsix
    ```
 
-3. **Smoke-install the `.vsix`** locally:
+3. Smoke-install the `.vsix`:
 
    ```bash
    code --install-extension agent-device-vscode-<version>.vsix
@@ -50,30 +86,21 @@ These steps assume the work that's already in this repo: the `package.json` `pub
 
    Open a folder with `.ad` files, click the Agent Device tab, run a script.
 
-4. **Publish**:
+4. Publish:
 
    ```bash
-   npx vsce publish
+   npx vsce publish               # uses cached login from one-time setup
+   npx vsce publish --pre-release # if you want it pre-release
    ```
 
-   Or, to bump and publish in one step:
-
-   ```bash
-   npx vsce publish patch
-   npx vsce publish minor
-   npx vsce publish major
-   ```
-
-   These bump `package.json` for you, commit the bump, and tag.
-
-5. **Tag and push** if you bumped manually:
+5. Tag and push:
 
    ```bash
    git tag v$(node -p "require('./package.json').version")
-   git push --tags
+   git push --follow-tags
    ```
 
-6. **Verify on the marketplace** at `https://marketplace.visualstudio.com/items?itemName=<publisher>.agent-device-vscode`.
+6. Verify on the marketplace.
 
 ## Pre-release vs stable
 

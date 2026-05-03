@@ -43,7 +43,10 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "release:patch": "npm version patch -m 'Release v%s' && git push --follow-tags",
+    "release:minor": "npm version minor -m 'Release v%s' && git push --follow-tags",
+    "release:major": "npm version major -m 'Release v%s' && git push --follow-tags"
   },
   "dependencies": {
     "agent-device": "^0.14.7"
