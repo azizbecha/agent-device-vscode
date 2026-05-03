@@ -54,7 +54,7 @@ In the repository settings → Secrets and variables → Actions, add:
 
 3. Watch the run at <https://github.com/azizbecha/agent-device-vscode/actions/workflows/publish.yml>. The workflow refuses to run if the tag and `package.json` version don't match.
 
-4. Verify the listing at `https://marketplace.visualstudio.com/items?itemName=<publisher>.agent-device-vscode`. Open VSX shows up at `https://open-vsx.org/extension/<publisher>/agent-device-vscode`.
+4. Verify the listing at `https://marketplace.visualstudio.com/items?itemName=<publisher>.agent-device`. Open VSX shows up at `https://open-vsx.org/extension/<publisher>/agent-device`.
 
 ### Manual dispatch
 
@@ -75,13 +75,13 @@ If the workflow is broken or you need to publish from a laptop:
    npm run format:check
    npm test
    npm run compile
-   npm run package    # produces agent-device-vscode-<version>.vsix
+   npm run package    # produces agent-device-<version>.vsix
    ```
 
 3. Smoke-install the `.vsix`:
 
    ```bash
-   code --install-extension agent-device-vscode-<version>.vsix
+   code --install-extension agent-device-<version>.vsix
    ```
 
    Open a folder with `.ad` files, click the Agent Device tab, run a script.
@@ -121,7 +121,7 @@ VS Code Marketplace listings don't auto-mirror to Open VSX. To support Cursor an
 3. Publish:
 
    ```bash
-   npx ovsx publish agent-device-vscode-<version>.vsix --pat <token>
+   npx ovsx publish agent-device-<version>.vsix --pat <token>
    ```
 
 You can wire this into CI later (the `HaaLeo/publish-vscode-extension` GitHub Action handles both marketplaces from one workflow).

@@ -1,7 +1,7 @@
 {
-  "name": "agent-device-vscode",
+  "name": "agent-device",
   "displayName": "Agent Device",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Author, run, and inspect agent-device .ad scripts inside your IDE.",
   "categories": [
     "Other",

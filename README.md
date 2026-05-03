@@ -65,8 +65,8 @@ Then press `F5` in VS Code to launch the Extension Development Host. Open any fo
 ## Install (packaged)
 
 ```bash
-npm run package    # produces agent-device-vscode-<version>.vsix
-code --install-extension agent-device-vscode-<version>.vsix
+npm run package    # produces agent-device-<version>.vsix
+code --install-extension agent-device-<version>.vsix
 ```
 
 ## Settings
