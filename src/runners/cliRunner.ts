@@ -1,6 +1,13 @@
 import { spawn } from 'node:child_process';
 
-export type BinPath = string | (() => string);
+export interface ResolvedBin {
+  readonly command: string;
+  readonly prefixArgs: readonly string[];
+  readonly env?: NodeJS.ProcessEnv;
+}
+
+type BinSpec = string | ResolvedBin;
+export type BinPath = BinSpec | (() => BinSpec);
 
 export interface CliExecution {
   readonly exitCode: number;
@@ -17,14 +24,16 @@ export interface CliRunOptions {
 export class CliRunner {
   constructor(private readonly binPath: BinPath) {}
 
-  private resolveBin(): string {
-    return typeof this.binPath === 'function' ? this.binPath() : this.binPath;
+  private resolveBin(): ResolvedBin {
+    const value = typeof this.binPath === 'function' ? this.binPath() : this.binPath;
+    return typeof value === 'string' ? { command: value, prefixArgs: [] } : value;
   }
 
   run(argv: readonly string[], options: CliRunOptions = {}): Promise<CliExecution> {
     return new Promise((resolve, reject) => {
-      const proc = spawn(this.resolveBin(), [...argv], {
-        env: { ...process.env, ...options.env },
+      const bin = this.resolveBin();
+      const proc = spawn(bin.command, [...bin.prefixArgs, ...argv], {
+        env: { ...process.env, ...bin.env, ...options.env },
         cwd: options.cwd,
         signal: options.signal,
       });
@@ -46,8 +55,9 @@ export class CliRunner {
   }
 
   spawnDetached(argv: readonly string[], options: CliRunOptions = {}): void {
-    const proc = spawn(this.resolveBin(), [...argv], {
-      env: { ...process.env, ...options.env },
+    const bin = this.resolveBin();
+    const proc = spawn(bin.command, [...bin.prefixArgs, ...argv], {
+      env: { ...process.env, ...bin.env, ...options.env },
       cwd: options.cwd,
       detached: true,
       stdio: 'ignore',
