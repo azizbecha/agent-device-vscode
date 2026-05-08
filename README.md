@@ -1,4 +1,4 @@
-# Agent Device for VS Code
+# Agent Device DevTools for VS Code
 
 [![CI](https://github.com/azizbecha/agent-device-vscode/actions/workflows/ci.yml/badge.svg)](https://github.com/azizbecha/agent-device-vscode/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -65,8 +65,8 @@ Then press `F5` in VS Code to launch the Extension Development Host. Open any fo
 ## Install (packaged)
 
 ```bash
-npm run package    # produces agent-device-<version>.vsix
-code --install-extension agent-device-<version>.vsix
+npm run package    # produces agent-device-devtools-<version>.vsix
+code --install-extension agent-device-devtools-<version>.vsix
 ```
 
 ## Settings

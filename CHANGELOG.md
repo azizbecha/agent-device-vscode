@@ -16,7 +16,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
-- Rename the extension identifier from `agent-device-vscode` to `agent-device`. New marketplace IDs: `azizbecha.agent-device` (VS Code Marketplace), `azizbecha/agent-device` (Open VSX). The previous `agent-device-vscode` listing has been unpublished.
+- Rename the extension identifier from `agent-device-vscode` to `agent-device-devtools`. New marketplace IDs: `azizbecha.agent-device-devtools` (VS Code Marketplace), `azizbecha/agent-device-devtools` (Open VSX). The previous `agent-device-vscode` listing has been unpublished.
 
 ## [0.1.0] - 2026-05-03
 

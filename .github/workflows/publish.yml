@@ -104,6 +104,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: agent-device-vsix
+          name: agent-device-devtools-vsix
           path: '*.vsix'
           if-no-files-found: error

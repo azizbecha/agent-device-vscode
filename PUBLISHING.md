@@ -8,7 +8,7 @@ These steps assume the work that's already in this repo: the `package.json` `pub
 
    Visit <https://marketplace.visualstudio.com/manage> and sign in with the Microsoft account that should own the listing. Click "Create publisher" and pick an ID. Update `package.json` `publisher` to match.
 
-   > Right now `package.json` has `"publisher": "agent-device"`. That string must match a publisher you (or your org) actually own on the marketplace.
+   > Right now `package.json` has `"publisher": "azizbecha"`. That string must match a publisher you (or your org) actually own on the marketplace.
 
 2. **Create a Personal Access Token (PAT)**
 
@@ -54,7 +54,7 @@ In the repository settings → Secrets and variables → Actions, add:
 
 3. Watch the run at <https://github.com/azizbecha/agent-device-vscode/actions/workflows/publish.yml>. The workflow refuses to run if the tag and `package.json` version don't match.
 
-4. Verify the listing at `https://marketplace.visualstudio.com/items?itemName=<publisher>.agent-device`. Open VSX shows up at `https://open-vsx.org/extension/<publisher>/agent-device`.
+4. Verify the listing at `https://marketplace.visualstudio.com/items?itemName=<publisher>.agent-device-devtools`. Open VSX shows up at `https://open-vsx.org/extension/<publisher>/agent-device-devtools`.
 
 ### Manual dispatch
 
@@ -75,13 +75,13 @@ If the workflow is broken or you need to publish from a laptop:
    npm run format:check
    npm test
    npm run compile
-   npm run package    # produces agent-device-<version>.vsix
+   npm run package    # produces agent-device-devtools-<version>.vsix
    ```
 
 3. Smoke-install the `.vsix`:
 
    ```bash
-   code --install-extension agent-device-<version>.vsix
+   code --install-extension agent-device-devtools-<version>.vsix
    ```
 
    Open a folder with `.ad` files, click the Agent Device tab, run a script.
@@ -121,7 +121,7 @@ VS Code Marketplace listings don't auto-mirror to Open VSX. To support Cursor an
 3. Publish:
 
    ```bash
-   npx ovsx publish agent-device-<version>.vsix --pat <token>
+   npx ovsx publish agent-device-devtools-<version>.vsix --pat <token>
    ```
 
 You can wire this into CI later (the `HaaLeo/publish-vscode-extension` GitHub Action handles both marketplaces from one workflow).
