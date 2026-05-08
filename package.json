@@ -271,17 +271,7 @@
       }
     }
   },
-  "activationEvents": [
-    "onCommand:agentDevice.newScript",
-    "onCommand:agentDevice.openLastReport",
-    "onCommand:agentDevice.openSettings",
-    "onCommand:agentDevice.runScript",
-    "onLanguage:agent-device",
-    "onView:agentDevice.devices",
-    "onView:agentDevice.runOutput",
-    "onView:agentDevice.settings",
-    "onView:agentDevice.snapshotInspector"
-  ],
+  "activationEvents": [],
   "icon": "media/icon.png",
   "galleryBanner": {
     "color": "#3b2860",
