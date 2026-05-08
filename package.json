@@ -1,7 +1,7 @@
 {
   "name": "agent-device-devtools",
   "displayName": "Agent Device DevTools",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Author, run, and inspect agent-device .ad scripts inside your IDE.",
   "categories": [
     "Other",
@@ -49,12 +49,12 @@
     "release:major": "npm version major -m 'Release v%s' && git push --follow-tags"
   },
   "dependencies": {
+    "@vscode/codicons": "^0.0.45",
     "agent-device": "^0.14.7"
   },
   "devDependencies": {
     "@types/node": "^22.19.17",
     "@types/vscode": "^1.95.0",
-    "@vscode/codicons": "^0.0.45",
     "@vscode/vsce": "^3.2.0",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.62.0",
