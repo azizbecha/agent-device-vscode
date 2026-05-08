@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-08
+
+### Changed
+
+- Rename extension identifier to `azizbecha.agent-device-devtools` and display name to "Agent Device DevTools".
+- Remove redundant `activationEvents` — VS Code auto-generates them from contribution declarations.
+
 ## [0.1.2] - 2026-05-03
 
 ### Fixed
