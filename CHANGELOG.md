@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- `context target=` key (`mobile` / `tv` / `desktop`) with completion and validation; `--target` flag values get the same treatment.
+- Header diagnostics matching agent-device 0.21: duplicate `context` keys, out-of-range `timeout=` / `retries=` (0-3), unknown keys (warning), and `context` / `env` lines placed after the first action.
+- Built-in variables `AD_DEVICE` and `AD_ARTIFACTS` in `${...}` completion.
+
 ### Changed
 
 - Bump the bundled `agent-device` CLI from 0.14.x to 0.21.x. agent-device 0.21 needs Node 22.12+, so the extension now requires VS Code 1.101+ (the first release whose extension host runs Node 22).
@@ -15,6 +21,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Completion now offers first-positional forms (subcommands) such as `gesture pan`, `is visible`, `wait absent`, `settings wifi`, `perf frames`, with the full signature as detail; `find` completion understands the locator-less `find "<query>" <action>` form.
 - Hover resolves aliases (`tap`, `long-press`, `launch`, `relaunch`) and explains removed commands (`rotate`, `metrics`, `ensure-simulator`).
 - TextMate grammar keyword list is regenerated from the catalog and covered by a test; versioned refs `@e4~s12` highlight as refs.
+- Platform vocabulary now covers every agent-device 0.21 target: `--platform` accepts `ios`, `android`, `macos`, `linux`, `harmonyos`, `vega`, `web`, `apple`; `context platform=` accepts the same minus `web` and says why.
 
 ## [0.2.1] - 2026-05-08
 

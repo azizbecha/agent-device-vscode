@@ -8,9 +8,8 @@ import {
   FIND_ACTIONS,
   FIND_LOCATORS,
 } from '../data/commands';
-import { SUPPORTED_PLATFORMS } from '../data/platforms';
 import { BUILTIN_VARIABLES } from '../data/variables';
-import { PlatformDiagnostics } from '../diagnostics/platformValidator';
+import { HeaderDiagnostics } from '../diagnostics/headerValidator';
 import { CommandCompletionProvider } from '../providers/completionProvider';
 import { ElementRefCompletionProvider } from '../providers/elementRefCompletionProvider';
 import { CommandHoverProvider } from '../providers/hoverProvider';
@@ -87,8 +86,8 @@ function registerProviders(context: vscode.ExtensionContext, snapshotIndex: Snap
 }
 
 function registerDiagnostics(context: vscode.ExtensionContext): void {
-  const platformDiagnostics = new PlatformDiagnostics(SUPPORTED_PLATFORMS);
-  platformDiagnostics.activate(context);
+  const headerDiagnostics = new HeaderDiagnostics();
+  headerDiagnostics.activate(context);
 }
 
 function registerTestController(

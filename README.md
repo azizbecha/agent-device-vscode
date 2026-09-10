@@ -12,9 +12,9 @@ Author, run, and inspect [agent-device](https://incubator.callstack.com/agent-de
 ### Authoring
 
 - **Syntax highlighting** for `.ad` files — every agent-device 0.21 command (including `gesture`, `orientation`, `hover`, `longpress`, `settings`, `tv-remote`, `diff`, `network`, `perf` areas), `@eN` and versioned `@eN~sM` refs, flags, double-quoted strings, `${VAR}` interpolation, `#` comments
-- **Completion** for commands, first-positional forms (`gesture pan`, `is visible`, `wait absent`, `record start`, `settings wifi`, `perf frames`, …), command-scoped flags (`--settle`, `--pointer-count`, `--surface`, …), `context` keys (`platform=`, `timeout=`, `retries=`), `find` locators and actions
+- **Completion** for commands, first-positional forms (`gesture pan`, `is visible`, `wait absent`, `record start`, `settings wifi`, `perf frames`, …), command-scoped flags (`--settle`, `--pointer-count`, `--surface`, …), `context` keys (`platform=`, `target=`, `timeout=`, `retries=`), `find` locators and actions
 - **Variable completion** inside `${...}` — built-in `AD_*` plus `env`-defined names from the same file
-- **Platform value completion + diagnostic** — suggests `android` / `ios` after `--platform` and `context platform=`, errors on anything else
+- **Header validation** — `context platform=` accepts `ios`, `android`, `macos`, `linux`, `harmonyos`, `vega`, `apple` (and errors on `web`, which replay does not target); `context target=` accepts `mobile` / `tv` / `desktop`; `timeout=` and `retries=` (0-3) are range-checked; duplicate keys and `context` / `env` lines after the first action are flagged the same way agent-device rejects them. `--platform` / `--target` flag values get the same completion and checks
 - **Hover** docs for commands, aliases (`tap`, `long-press`, `launch`), directives, and flags; hovering a removed command (`rotate`, `metrics`) names its replacement
 
 ![Command completion](media/screenshots/command-completion.png)
