@@ -3,6 +3,7 @@
  * positionals that hold selector expressions, and validate them against the
  * agent-device 0.21 selector grammar.
  */
+import { validateLineQuoting } from './quotingRules';
 import {
   ROLE_HINT_WORD_SET,
   SELECTOR_BOOLEAN_KEY_SET,
@@ -17,6 +18,7 @@ export type SelectorIssueCode =
   | 'empty-selector-segment'
   | 'unterminated-selector-quote'
   | 'unquoted-selector-value'
+  | 'malformed-argument-quoting'
   | 'bare-selector-word';
 
 export interface SelectorFix {
@@ -162,7 +164,7 @@ export function validateSelectorExpression(
           ...base,
           startCol: segmentBase + valueStart,
           endCol: segmentBase + spill.end,
-          message: `Selector values with spaces must be quoted: agent-device reads \`${key}=${spilled}\` as \`${key}=${previous!.text.slice(previous!.text.indexOf('=') + 1)}\` plus the term \`${term.text}\`. Write \`${key}='${spilled}'\` (or \`${key}=\\"${spilled}\\"\`).`,
+          message: `Selector values with spaces must be quoted: agent-device reads \`${key}=${spilled}\` as \`${key}=${previous!.text.slice(previous!.text.indexOf('=') + 1)}\` plus the term \`${term.text}\`. Write \`"${key}='${spilled}'"\`. (Inside a \`"…"\` argument a double quote must be \`\\"\`, which is why \`'…'\` is the readable choice.)`,
           severity: 'error',
           code: 'unquoted-selector-value',
           fixes: [
@@ -235,6 +237,17 @@ function quoteValueInString(inner: string, from: number, to: number): string {
 export function validateSelectorLines(lines: readonly string[]): SelectorIssue[] {
   const issues: SelectorIssue[] = [];
   for (let line = 0; line < lines.length; line++) {
+    const quoting = validateLineQuoting(lines[line] ?? '', line);
+    if (quoting) {
+      // A mis-tokenized line would only cascade into confusing selector errors.
+      issues.push({
+        ...quoting,
+        severity: 'error',
+        stringStart: quoting.startCol,
+        stringEnd: quoting.endCol,
+      });
+      continue;
+    }
     for (const selector of findSelectorStrings(lines[line] ?? '')) {
       issues.push(...validateSelectorExpression(selector, line));
     }

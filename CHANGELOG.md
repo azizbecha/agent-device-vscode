@@ -18,6 +18,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Fixed
 
+- Quoting repair: `click label="Sign in"` and `click "label="Sign in""` (the two natural spellings, both mis-tokenized by agent-device because a bare argument ends at the first space and a `"…"` argument is a JSON string) are now reported with the exact split agent-device sees and a quick fix that rewrites the argument to `"label='Sign in'"` or `"label=\"Sign in\""`.
+
 - Selector diagnostics: `click "label=Sign in"` now reports that values with spaces must be quoted (agent-device tokenizes `in` as its own term and fails with `INVALID_ARGS`) instead of a generic "not a selector term" error, and offers a quick fix that rewrites it to `label='Sign in'`.
 
 ### Changed
