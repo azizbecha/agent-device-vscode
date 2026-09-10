@@ -39,7 +39,7 @@ Author, run, and inspect [agent-device](https://incubator.callstack.com/agent-de
 
 ### Templates
 
-- `+ New` opens a QuickPick with 9 starter templates: empty file, iOS/Android Settings smoke, login flow, search & assert, scroll & discover, swipe gestures, visual baseline, React Native (Metro)
+- `+ New` opens a QuickPick with 14 starter templates written against agent-device 0.21: empty file, iOS / Android Settings smoke, login flow, assert & wait cheat sheet, search & assert, scroll & discover, gestures (post-0.20 forms), visual baseline with `diff screenshot`, React Native (Metro), macOS desktop app, Linux desktop app, Android TV remote navigation. Templates use selectors (`label=`, `id=`, `role=`, `||`), `--settle`, and `is` / `wait absent` / `wait text` assertions
 
 ![Template picker](media/screenshots/templates.png)
 
