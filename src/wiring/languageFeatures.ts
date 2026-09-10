@@ -9,6 +9,7 @@ import {
   FIND_LOCATORS,
 } from '../data/commands';
 import { BUILTIN_VARIABLES } from '../data/variables';
+import { GestureDiagnostics } from '../diagnostics/gestureValidator';
 import { HeaderDiagnostics } from '../diagnostics/headerValidator';
 import { CommandCompletionProvider } from '../providers/completionProvider';
 import { ElementRefCompletionProvider } from '../providers/elementRefCompletionProvider';
@@ -88,6 +89,9 @@ function registerProviders(context: vscode.ExtensionContext, snapshotIndex: Snap
 function registerDiagnostics(context: vscode.ExtensionContext): void {
   const headerDiagnostics = new HeaderDiagnostics();
   headerDiagnostics.activate(context);
+
+  const gestureDiagnostics = new GestureDiagnostics();
+  gestureDiagnostics.activate(context);
 }
 
 function registerTestController(
