@@ -4,14 +4,30 @@
   "scopeName": "source.agent-device",
   "fileTypes": ["ad"],
   "patterns": [
-    { "include": "#comment" },
-    { "include": "#directive" },
-    { "include": "#command" },
-    { "include": "#string" },
-    { "include": "#elementRef" },
-    { "include": "#variable" },
-    { "include": "#flag" },
-    { "include": "#number" }
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#directive"
+    },
+    {
+      "include": "#command"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#elementRef"
+    },
+    {
+      "include": "#variable"
+    },
+    {
+      "include": "#flag"
+    },
+    {
+      "include": "#number"
+    }
   ],
   "repository": {
     "comment": {
@@ -24,7 +40,7 @@
     },
     "command": {
       "name": "keyword.control.command.agent-device",
-      "match": "^\\s*\\b(snapshot|screenshot|appstate|click|press|fill|type|swipe|scroll|find|is|wait|get|record|keyboard|clipboard|alert|push|batch|trigger-app-event|trace|logs|perf|runtime|back|replay|open|close)\\b"
+      "match": "^\\s*\\b(install-from-source|trigger-app-event|app-switcher|capabilities|react-native|orientation|long-press|screenshot|clipboard|longpress|reinstall|tv-remote|appstate|keyboard|relaunch|settings|shutdown|snapshot|viewport|devices|gesture|install|network|runtime|doctor|events|launch|record|replay|scroll|alert|audio|batch|click|close|focus|hover|press|swipe|trace|apps|back|boot|diff|fill|find|home|logs|open|perf|push|type|wait|get|tap|is)\\b"
     },
     "string": {
       "name": "string.quoted.double.agent-device",
@@ -35,12 +51,14 @@
           "name": "constant.character.escape.agent-device",
           "match": "\\\\."
         },
-        { "include": "#variable" }
+        {
+          "include": "#variable"
+        }
       ]
     },
     "elementRef": {
       "name": "variable.parameter.element-ref.agent-device",
-      "match": "@e\\d+"
+      "match": "@e\\d+(?:~s\\d+)?"
     },
     "variable": {
       "name": "variable.other.interpolation.agent-device",

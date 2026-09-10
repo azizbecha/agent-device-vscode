@@ -11,11 +11,11 @@ Author, run, and inspect [agent-device](https://incubator.callstack.com/agent-de
 
 ### Authoring
 
-- **Syntax highlighting** for `.ad` files — commands, `@eN` refs, flags, double-quoted strings, `${VAR}` interpolation, `#` comments
-- **Completion** for commands, command-scoped flags, `context` keys (`platform=`, `timeout=`, `retries=`), `find` sub-actions
+- **Syntax highlighting** for `.ad` files — every agent-device 0.21 command (including `gesture`, `orientation`, `hover`, `longpress`, `settings`, `tv-remote`, `diff`, `network`, `perf` areas), `@eN` and versioned `@eN~sM` refs, flags, double-quoted strings, `${VAR}` interpolation, `#` comments
+- **Completion** for commands, first-positional forms (`gesture pan`, `is visible`, `wait absent`, `record start`, `settings wifi`, `perf frames`, …), command-scoped flags (`--settle`, `--pointer-count`, `--surface`, …), `context` keys (`platform=`, `timeout=`, `retries=`), `find` locators and actions
 - **Variable completion** inside `${...}` — built-in `AD_*` plus `env`-defined names from the same file
 - **Platform value completion + diagnostic** — suggests `android` / `ios` after `--platform` and `context platform=`, errors on anything else
-- **Hover** docs for commands, directives, and flags
+- **Hover** docs for commands, aliases (`tap`, `long-press`, `launch`), directives, and flags; hovering a removed command (`rotate`, `metrics`) names its replacement
 
 ![Command completion](media/screenshots/command-completion.png)
 

@@ -1,6 +1,11 @@
 import * as vscode from 'vscode';
 
-import type { CommandDef, DirectiveDef, FlagDef } from '../data/commands';
+import {
+  REMOVED_COMMANDS,
+  type CommandDef,
+  type DirectiveDef,
+  type FlagDef,
+} from '../data/commands';
 
 const TOKEN_REGEX = /(--[a-z][a-z0-9-]*)|(-[a-z])|(@e\d+)|([a-z][a-z0-9-]*)/;
 
@@ -37,7 +42,13 @@ export class CommandHoverProvider implements vscode.HoverProvider {
 
     const command = this.commandIndex.get(word);
     if (command) {
-      return renderCommand(command);
+      return renderCommand(command, word);
+    }
+    const removed = REMOVED_COMMANDS.get(word);
+    if (removed) {
+      const md = new vscode.MarkdownString();
+      md.appendMarkdown(`**${word}** is no longer an agent-device command. ${removed}`);
+      return new vscode.Hover(md);
     }
     const directive = this.directiveIndex.get(word);
     if (directive) {
@@ -63,10 +74,17 @@ export class CommandHoverProvider implements vscode.HoverProvider {
   }
 }
 
-function renderCommand(command: CommandDef): vscode.Hover {
+function renderCommand(command: CommandDef, word: string): vscode.Hover {
   const md = new vscode.MarkdownString();
   md.appendCodeblock(command.signature, 'agent-device');
   md.appendMarkdown(command.summary);
+  if (word !== command.name) {
+    md.appendMarkdown(`\n\n\`${word}\` is an alias of \`${command.name}\`.`);
+  }
+  if (command.subcommands?.length) {
+    const names = command.subcommands.map((s) => `\`${s.name}\``).join(', ');
+    md.appendMarkdown(`\n\nForms: ${names}`);
+  }
   return new vscode.Hover(md);
 }
 
