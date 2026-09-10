@@ -10,6 +10,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - Bump the bundled `agent-device` CLI from 0.14.x to 0.21.x. agent-device 0.21 needs Node 22.12+, so the extension now requires VS Code 1.101+ (the first release whose extension host runs Node 22).
 - On activation, warn once when the editor's extension host Node is too old for the bundled CLI and no `agentDevice.cliPath` override is set, with a shortcut to the setting.
+- Rebuild the command catalog against agent-device 0.21: add `gesture`, `orientation`, `hover`, `longpress`, `focus`, `home`, `app-switcher`, `boot`, `shutdown`, `diff`, `apps`, `capabilities`, `devices`, `doctor`, `settings`, `install`, `reinstall`, `install-from-source`, `tv-remote`, `viewport`, `react-native`, `events`, `network`, `audio`; drop the removed `rotate`, the bare `perf` form and its `--metric` flag; correct `keyboard` (`status|get|dismiss`), `clipboard` (`read|write`), `logs` (`path|start|stop|clear|doctor|mark`), `alert`, `get` (`text|attrs`), `is` (adds `absent`, `focused`), `wait` (adds `text`, `absent`, `stable`), `find` (locators `text|label|value|role|id`, actions incl. `list`), `swipe` (no trailing duration), `record --scope`, `screenshot --scale/--overlay-refs/--crop-on`, `snapshot --diff/--actions/--force-full`, `back --in-app/--system`, `open --surface/--activity/--save-script` and Metro flags, `replay --from/--plan-digest/--keep-session/-e`.
+- Add shared `--settle`, `--settle-quiet`, `--verify` flags on interactions and `--platform/--target/--device/--session` on every command.
+- Completion now offers first-positional forms (subcommands) such as `gesture pan`, `is visible`, `wait absent`, `settings wifi`, `perf frames`, with the full signature as detail; `find` completion understands the locator-less `find "<query>" <action>` form.
+- Hover resolves aliases (`tap`, `long-press`, `launch`, `relaunch`) and explains removed commands (`rotate`, `metrics`, `ensure-simulator`).
+- TextMate grammar keyword list is regenerated from the catalog and covered by a test; versioned refs `@e4~s12` highlight as refs.
 
 ## [0.2.1] - 2026-05-08
 

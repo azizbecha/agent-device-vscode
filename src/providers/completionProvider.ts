@@ -44,6 +44,13 @@ export class CommandCompletionProvider implements vscode.CompletionItemProvider 
       return this.suggestFindArgs(ctx);
     }
 
+    if (ctx.tokensBefore.length === 1 && !ctx.currentToken.startsWith('-')) {
+      const subcommands = this.suggestSubcommands(ctx.firstToken);
+      if (subcommands.length > 0) {
+        return subcommands;
+      }
+    }
+
     if (ctx.currentToken.startsWith('--')) {
       return this.suggestFlags(ctx.firstToken, 'long');
     }
@@ -90,6 +97,20 @@ export class CommandCompletionProvider implements vscode.CompletionItemProvider 
     });
   }
 
+  private suggestSubcommands(commandName: string): vscode.CompletionItem[] {
+    const command = this.commandIndex.get(commandName);
+    if (!command?.subcommands) {
+      return [];
+    }
+    return command.subcommands.map((sub, index) => {
+      const item = new vscode.CompletionItem(sub.name, vscode.CompletionItemKind.EnumMember);
+      item.detail = sub.signature ?? `${command.name} ${sub.name}`;
+      item.documentation = new vscode.MarkdownString(sub.summary);
+      item.sortText = String(index).padStart(2, '0');
+      return item;
+    });
+  }
+
   private suggestFindArgs(ctx: LineCursorContext): vscode.CompletionItem[] {
     const argsAfterFind = ctx.tokensBefore.slice(1);
     if (argsAfterFind.length === 0) {
@@ -97,7 +118,10 @@ export class CommandCompletionProvider implements vscode.CompletionItemProvider 
         (locator) => new vscode.CompletionItem(locator, vscode.CompletionItemKind.EnumMember),
       );
     }
-    if (argsAfterFind.length >= 2) {
+    // `find <locator> "<query>" <action>` or the locator-less `find "<query>" <action>`.
+    const hasLocator = this.findLocators.includes(argsAfterFind[0] ?? '');
+    const queryIndex = hasLocator ? 1 : 0;
+    if (argsAfterFind.length === queryIndex + 1) {
       return this.findActions.map(
         (action) => new vscode.CompletionItem(action, vscode.CompletionItemKind.Method),
       );
