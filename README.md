@@ -53,6 +53,10 @@ Author, run, and inspect [agent-device](https://incubator.callstack.com/agent-de
 - Sticky toolbar with **search** (`/` to focus), **status filter pills** (All / Passed / Failed / Skipped with counts), **Expand all / Collapse all**
 - Per-step Copy command + Copy stdout/stderr buttons; light/dark mode auto-detected; pure HTML/CSS/JS, no external assets — share by zipping the run folder
 
+## Requirements
+
+- VS Code 1.101 or newer (extension host on Node 22.12+, which the bundled `agent-device` 0.21 CLI requires). Older editors can still use the extension by pointing `agentDevice.cliPath` at an `agent-device` install that runs on a newer Node.
+
 ## Install (development)
 
 ```bash
