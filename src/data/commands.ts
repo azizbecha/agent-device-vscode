@@ -37,7 +37,7 @@ export interface DirectiveDef {
   readonly keys?: readonly DirectiveKeyDef[];
 }
 
-import { SUPPORTED_PLATFORMS } from './platforms';
+import { CONTEXT_PLATFORMS, DEVICE_TARGETS, SUPPORTED_PLATFORMS } from './platforms';
 
 const platformValueHint = `<${SUPPORTED_PLATFORMS.join('|')}>`;
 
@@ -1004,9 +1004,18 @@ export const DIRECTIVES: readonly DirectiveDef[] = [
     name: 'context',
     summary: 'Set per-script execution context (header).',
     keys: [
-      { name: 'platform', summary: 'Target platform.', valueChoices: SUPPORTED_PLATFORMS },
+      {
+        name: 'platform',
+        summary: 'Target platform (every --platform value except web).',
+        valueChoices: CONTEXT_PLATFORMS,
+      },
+      {
+        name: 'target',
+        summary: 'Device target class: mobile (default), tv, or desktop.',
+        valueChoices: DEVICE_TARGETS,
+      },
       { name: 'timeout', summary: 'Default per-step timeout in ms.' },
-      { name: 'retries', summary: 'How many retries on failure.' },
+      { name: 'retries', summary: 'Retries per failed step (0-3).' },
     ],
   },
   {
