@@ -14,6 +14,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Gesture diagnostics for the agent-device 0.20 gesture redesign: `swipe` and every `gesture` kind are checked for argument count, `fling` direction, and `swipe` preset. The removed trailing positionals (`swipe … durationMs`, `gesture fling … durationMs`, `gesture swipe <preset> durationMs`, `gesture rotate … velocity`) are reported as deprecated with quick fixes: drop the positional, or for `swipe` convert to `gesture pan x y dx dy durationMs` to keep the timing.
 - Selector language support matching agent-device 0.21 `@agent-device/selectors`: grammar scopes for selector keys, boolean terms, `||`, and single-quoted values inside strings; completion of keys / boolean terms / `||` inside selector positionals (`click`, `press`, `longpress`, `hover`, `focus`, `fill`, `wait`, `is`, `get`, `gesture drag`, `screenshot --crop-on`) and role words after `role=`; diagnostics for unknown keys (with the same `role=` / `label=` hint agent-device prints), empty values, empty fallback segments, bare words, and unterminated quotes.
 - Versioned refs `@e4~s12` highlight as refs.
+- Templates for macOS desktop apps, Linux desktop apps (AT-SPI), Android TV (`context target=tv` + `tv-remote`), and an assertion cheat sheet.
 
 ### Changed
 
@@ -25,6 +26,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Hover resolves aliases (`tap`, `long-press`, `launch`, `relaunch`) and explains removed commands (`rotate`, `metrics`, `ensure-simulator`).
 - TextMate grammar keyword list is regenerated from the catalog and covered by a test; versioned refs `@e4~s12` highlight as refs.
 - Platform vocabulary now covers every agent-device 0.21 target: `--platform` accepts `ios`, `android`, `macos`, `linux`, `harmonyos`, `vega`, `web`, `apple`; `context platform=` accepts the same minus `web` and says why.
+- Rewrite the starter templates against agent-device 0.21: the swipe template used the retired `swipe x1 y1 x2 y2 durationMs` form (rejected since 0.20) and now shows `swipe`, `gesture pan`, `gesture fling`, `pinch`, `rotate`; templates use `--settle` instead of `wait <ms>` + re-snapshot, selectors instead of guessed `@eN` refs, `is` / `wait absent` / `wait text` / `wait stable` assertions, `keyboard dismiss`, `open --metro-host/--metro-port` + `react-native dismiss-overlay`, and `diff screenshot --baseline`.
 
 ## [0.2.1] - 2026-05-08
 
