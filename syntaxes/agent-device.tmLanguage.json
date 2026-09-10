@@ -53,6 +53,18 @@
         },
         {
           "include": "#variable"
+        },
+        {
+          "include": "#selectorFallback"
+        },
+        {
+          "include": "#selectorKey"
+        },
+        {
+          "include": "#selectorBoolean"
+        },
+        {
+          "include": "#selectorInnerQuote"
         }
       ]
     },
@@ -79,6 +91,30 @@
     "number": {
       "name": "constant.numeric.agent-device",
       "match": "(?<![A-Za-z_@-])-?\\d+(?:\\.\\d+)?\\b"
+    },
+    "selectorFallback": {
+      "name": "keyword.operator.selector-fallback.agent-device",
+      "match": "\\|\\|"
+    },
+    "selectorKey": {
+      "match": "(?<=^|\\s|\"|\\|)([A-Za-z][A-Za-z0-9_-]*)(=)",
+      "captures": {
+        "1": {
+          "name": "entity.other.attribute-name.selector-key.agent-device"
+        },
+        "2": {
+          "name": "keyword.operator.assignment.selector.agent-device"
+        }
+      }
+    },
+    "selectorBoolean": {
+      "name": "constant.language.selector-boolean.agent-device",
+      "match": "(?<=\\s|\"|\\|)(visible|hidden|editable|selected|focused|enabled|hittable)(?=\\s|$|\"|\\|)"
+    },
+    "selectorInnerQuote": {
+      "name": "string.quoted.single.selector-value.agent-device",
+      "begin": "'",
+      "end": "'"
     }
   }
 }

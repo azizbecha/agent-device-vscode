@@ -11,10 +11,12 @@ import {
 import { BUILTIN_VARIABLES } from '../data/variables';
 import { GestureDiagnostics } from '../diagnostics/gestureValidator';
 import { HeaderDiagnostics } from '../diagnostics/headerValidator';
+import { SelectorDiagnostics } from '../diagnostics/selectorValidator';
 import { CommandCompletionProvider } from '../providers/completionProvider';
 import { ElementRefCompletionProvider } from '../providers/elementRefCompletionProvider';
 import { CommandHoverProvider } from '../providers/hoverProvider';
 import { RunStepCodeLensProvider } from '../providers/runStepCodeLensProvider';
+import { SelectorCompletionProvider } from '../providers/selectorCompletionProvider';
 import { ValueCompletionProvider } from '../providers/valueCompletionProvider';
 import { VariableCompletionProvider } from '../providers/variableCompletionProvider';
 import type { AdFileIndex } from '../services/adFileIndex';
@@ -78,6 +80,15 @@ function registerProviders(context: vscode.ExtensionContext, snapshotIndex: Snap
     ),
   );
 
+  const selectors = new SelectorCompletionProvider();
+  context.subscriptions.push(
+    vscode.languages.registerCompletionItemProvider(
+      LANGUAGE_ID,
+      selectors,
+      ...SelectorCompletionProvider.triggerCharacters,
+    ),
+  );
+
   const hover = new CommandHoverProvider(COMMAND_BY_NAME, DIRECTIVE_BY_NAME);
   context.subscriptions.push(vscode.languages.registerHoverProvider(LANGUAGE_ID, hover));
 
@@ -92,6 +103,9 @@ function registerDiagnostics(context: vscode.ExtensionContext): void {
 
   const gestureDiagnostics = new GestureDiagnostics();
   gestureDiagnostics.activate(context);
+
+  const selectorDiagnostics = new SelectorDiagnostics();
+  selectorDiagnostics.activate(context);
 }
 
 function registerTestController(
