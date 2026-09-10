@@ -12,6 +12,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Header diagnostics matching agent-device 0.21: duplicate `context` keys, out-of-range `timeout=` / `retries=` (0-3), unknown keys (warning), and `context` / `env` lines placed after the first action.
 - Built-in variables `AD_DEVICE` and `AD_ARTIFACTS` in `${...}` completion.
 - Gesture diagnostics for the agent-device 0.20 gesture redesign: `swipe` and every `gesture` kind are checked for argument count, `fling` direction, and `swipe` preset. The removed trailing positionals (`swipe … durationMs`, `gesture fling … durationMs`, `gesture swipe <preset> durationMs`, `gesture rotate … velocity`) are reported as deprecated with quick fixes: drop the positional, or for `swipe` convert to `gesture pan x y dx dy durationMs` to keep the timing.
+- Selector language support matching agent-device 0.21 `@agent-device/selectors`: grammar scopes for selector keys, boolean terms, `||`, and single-quoted values inside strings; completion of keys / boolean terms / `||` inside selector positionals (`click`, `press`, `longpress`, `hover`, `focus`, `fill`, `wait`, `is`, `get`, `gesture drag`, `screenshot --crop-on`) and role words after `role=`; diagnostics for unknown keys (with the same `role=` / `label=` hint agent-device prints), empty values, empty fallback segments, bare words, and unterminated quotes.
+- Versioned refs `@e4~s12` highlight as refs.
 
 ### Changed
 
