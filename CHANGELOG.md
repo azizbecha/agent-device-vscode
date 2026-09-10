@@ -6,6 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+
+- Bump the bundled `agent-device` CLI from 0.14.x to 0.21.x. agent-device 0.21 needs Node 22.12+, so the extension now requires VS Code 1.101+ (the first release whose extension host runs Node 22).
+- On activation, warn once when the editor's extension host Node is too old for the bundled CLI and no `agentDevice.cliPath` override is set, with a shortcut to the setting.
+
 ## [0.2.1] - 2026-05-08
 
 ### Fixed
