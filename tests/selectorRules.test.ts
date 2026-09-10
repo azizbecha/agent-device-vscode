@@ -112,7 +112,9 @@ describe('validateSelectorLines', () => {
     expect(codes('click "label=A ||"')).toEqual(['empty-selector-segment']);
     expect(codes('click "label=A || || id=b"')).toEqual(['empty-selector-segment']);
     expect(codes('click "label=A button"')).toEqual(['unquoted-selector-value']);
-    expect(codes('click "visible button"')).toEqual(['bare-selector-word']);
+    // No key=value and no ||: agent-device treats this as plain text, so no diagnostic.
+    expect(codes('click "visible button"')).toEqual([]);
+    expect(codes('click "id=x button"')).toEqual(['unquoted-selector-value']);
   });
 
   it('explains unquoted values with spaces and offers a quoting fix', () => {
