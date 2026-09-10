@@ -16,6 +16,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Versioned refs `@e4~s12` highlight as refs.
 - Templates for macOS desktop apps, Linux desktop apps (AT-SPI), Android TV (`context target=tv` + `tv-remote`), and an assertion cheat sheet.
 
+### Fixed
+
+- Selector diagnostics: `click "label=Sign in"` now reports that values with spaces must be quoted (agent-device tokenizes `in` as its own term and fails with `INVALID_ARGS`) instead of a generic "not a selector term" error, and offers a quick fix that rewrites it to `label='Sign in'`.
+
 ### Changed
 
 - Bump the bundled `agent-device` CLI from 0.14.x to 0.21.x. agent-device 0.21 needs Node 22.12+, so the extension now requires VS Code 1.101+ (the first release whose extension host runs Node 22).
