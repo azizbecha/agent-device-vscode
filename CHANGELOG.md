@@ -11,6 +11,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `context target=` key (`mobile` / `tv` / `desktop`) with completion and validation; `--target` flag values get the same treatment.
 - Header diagnostics matching agent-device 0.21: duplicate `context` keys, out-of-range `timeout=` / `retries=` (0-3), unknown keys (warning), and `context` / `env` lines placed after the first action.
 - Built-in variables `AD_DEVICE` and `AD_ARTIFACTS` in `${...}` completion.
+- Gesture diagnostics for the agent-device 0.20 gesture redesign: `swipe` and every `gesture` kind are checked for argument count, `fling` direction, and `swipe` preset. The removed trailing positionals (`swipe … durationMs`, `gesture fling … durationMs`, `gesture swipe <preset> durationMs`, `gesture rotate … velocity`) are reported as deprecated with quick fixes: drop the positional, or for `swipe` convert to `gesture pan x y dx dy durationMs` to keep the timing.
 
 ### Changed
 

@@ -16,6 +16,7 @@ Author, run, and inspect [agent-device](https://incubator.callstack.com/agent-de
 - **Variable completion** inside `${...}` — built-in `AD_*` plus `env`-defined names from the same file
 - **Header validation** — `context platform=` accepts `ios`, `android`, `macos`, `linux`, `harmonyos`, `vega`, `apple` (and errors on `web`, which replay does not target); `context target=` accepts `mobile` / `tv` / `desktop`; `timeout=` and `retries=` (0-3) are range-checked; duplicate keys and `context` / `env` lines after the first action are flagged the same way agent-device rejects them. `--platform` / `--target` flag values get the same completion and checks
 - **Hover** docs for commands, aliases (`tap`, `long-press`, `launch`), directives, and flags; hovering a removed command (`rotate`, `metrics`) names its replacement
+- **Gesture diagnostics + quick fixes** — `swipe`, `gesture pan/fling/drag/pinch/rotate/transform/swipe` lines are checked against the agent-device 0.20 arity table. The retired trailing `durationMs` (swipe, fling, gesture swipe) and `velocity` (rotate) positionals are flagged as deprecated with a one-click fix that applies the same migration agent-device prints; `swipe … <ms>` additionally offers "convert to `gesture pan`" to keep the timing
 
 ![Command completion](media/screenshots/command-completion.png)
 
