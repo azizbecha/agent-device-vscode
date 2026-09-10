@@ -16,7 +16,14 @@ export type SelectorIssueCode =
   | 'empty-selector-value'
   | 'empty-selector-segment'
   | 'unterminated-selector-quote'
+  | 'unquoted-selector-value'
   | 'bare-selector-word';
+
+export interface SelectorFix {
+  readonly title: string;
+  /** Replacement for the whole quoted positional, columns [SelectorString.start, SelectorString.end). */
+  readonly replacement: string;
+}
 
 export interface SelectorIssue {
   readonly line: number;
@@ -26,6 +33,10 @@ export interface SelectorIssue {
   readonly message: string;
   readonly severity: 'error' | 'warning';
   readonly code: SelectorIssueCode;
+  /** Range of the whole quoted positional, for fixes. */
+  readonly stringStart: number;
+  readonly stringEnd: number;
+  readonly fixes: readonly SelectorFix[];
 }
 
 /** A double-quoted positional on a selector-taking command. */
@@ -106,12 +117,19 @@ export function validateSelectorExpression(
     return issues;
   }
 
+  const base = {
+    line,
+    stringStart: selector.start,
+    stringEnd: selector.end,
+    fixes: [] as readonly SelectorFix[],
+  };
+
   const segments = splitFallbackChain(inner);
   for (const segment of segments) {
     const trimmed = segment.text.trim();
     if (trimmed.length === 0) {
       issues.push({
-        line,
+        ...base,
         startCol: innerStart + segment.start,
         endCol: innerStart + Math.max(segment.end, segment.start + 1),
         message: 'Empty selector segment around `||`.',
@@ -123,7 +141,7 @@ export function validateSelectorExpression(
     const terms = tokenizeSelectorTerms(segment.text);
     if (terms.unterminated) {
       issues.push({
-        line,
+        ...base,
         startCol: innerStart + segment.start + terms.unterminated.start,
         endCol: innerStart + segment.end,
         message: 'Unterminated quoted value inside the selector.',
@@ -131,14 +149,87 @@ export function validateSelectorExpression(
         code: 'unterminated-selector-quote',
       });
     }
-    for (const term of terms.tokens) {
-      const issue = validateTerm(term, line, innerStart + segment.start);
+    const segmentBase = innerStart + segment.start;
+    for (let i = 0; i < terms.tokens.length; i++) {
+      const term = terms.tokens[i]!;
+      const previous = terms.tokens[i - 1];
+      const spill = unquotedSpaceSpill(previous, term, terms.tokens, i);
+      if (spill) {
+        const valueStart = previous!.start + previous!.text.indexOf('=') + 1;
+        const spilled = segment.text.slice(valueStart, spill.end);
+        const key = previous!.text.slice(0, previous!.text.indexOf('='));
+        issues.push({
+          ...base,
+          startCol: segmentBase + valueStart,
+          endCol: segmentBase + spill.end,
+          message: `Selector values with spaces must be quoted: agent-device reads \`${key}=${spilled}\` as \`${key}=${previous!.text.slice(previous!.text.indexOf('=') + 1)}\` plus the term \`${term.text}\`. Write \`${key}='${spilled}'\` (or \`${key}=\\"${spilled}\\"\`).`,
+          severity: 'error',
+          code: 'unquoted-selector-value',
+          fixes: [
+            {
+              title: `Quote the value: ${key}='${spilled}'`,
+              replacement: quoteValueInString(
+                inner,
+                segment.start + valueStart,
+                segment.start + spill.end,
+              ),
+            },
+          ],
+        });
+        i = spill.lastIndex;
+        continue;
+      }
+      const issue = validateTerm(term, line, segmentBase);
       if (issue) {
-        issues.push(issue);
+        issues.push({ ...base, ...issue });
       }
     }
   }
   return issues;
+}
+
+/**
+ * `label=Sign in`: agent-device tokenizes on whitespace, so `in` becomes its
+ * own (invalid) term. Detect a run of bare non-boolean words right after an
+ * unquoted `key=value` and treat the whole run as the spilled value.
+ */
+function unquotedSpaceSpill(
+  previous: Token | undefined,
+  term: Token,
+  tokens: readonly Token[],
+  index: number,
+): { end: number; lastIndex: number } | null {
+  if (!previous || !isBareInvalidWord(term)) {
+    return null;
+  }
+  const eq = previous.text.indexOf('=');
+  if (eq === -1) {
+    return null;
+  }
+  const key = previous.text.slice(0, eq).toLowerCase();
+  const value = previous.text.slice(eq + 1);
+  if (!SELECTOR_TEXT_KEY_SET.has(key) || value.length === 0) {
+    return null;
+  }
+  if (value.startsWith("'") || value.startsWith('\\"')) {
+    return null;
+  }
+  let lastIndex = index;
+  while (lastIndex + 1 < tokens.length && isBareInvalidWord(tokens[lastIndex + 1]!)) {
+    lastIndex++;
+  }
+  return { end: tokens[lastIndex]!.end, lastIndex };
+}
+
+function isBareInvalidWord(term: Token): boolean {
+  return !term.text.includes('=') && !SELECTOR_BOOLEAN_KEY_SET.has(term.text.toLowerCase());
+}
+
+/** Wrap `inner[from, to)` in single quotes and return the full double-quoted positional. */
+function quoteValueInString(inner: string, from: number, to: number): string {
+  const value = inner.slice(from, to);
+  const quoted = value.includes("'") ? `\\"${value}\\"` : `'${value}'`;
+  return `"${inner.slice(0, from)}${quoted}${inner.slice(to)}"`;
 }
 
 export function validateSelectorLines(lines: readonly string[]): SelectorIssue[] {
@@ -151,7 +242,9 @@ export function validateSelectorLines(lines: readonly string[]): SelectorIssue[]
   return issues;
 }
 
-function validateTerm(term: Token, line: number, base: number): SelectorIssue | null {
+type TermIssue = Omit<SelectorIssue, 'stringStart' | 'stringEnd' | 'fixes'>;
+
+function validateTerm(term: Token, line: number, base: number): TermIssue | null {
   const eq = term.text.indexOf('=');
   const startCol = base + term.start;
   if (eq === -1) {

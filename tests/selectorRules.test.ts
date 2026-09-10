@@ -111,7 +111,33 @@ describe('validateSelectorLines', () => {
     expect(codes('click "label="')).toEqual(['empty-selector-value']);
     expect(codes('click "label=A ||"')).toEqual(['empty-selector-segment']);
     expect(codes('click "label=A || || id=b"')).toEqual(['empty-selector-segment']);
-    expect(codes('click "label=A button"')).toEqual(['bare-selector-word']);
+    expect(codes('click "label=A button"')).toEqual(['unquoted-selector-value']);
+    expect(codes('click "visible button"')).toEqual(['bare-selector-word']);
+  });
+
+  it('explains unquoted values with spaces and offers a quoting fix', () => {
+    const issues = validateSelectorLines(['click "label=Sign in" --settle']);
+    expect(issues.map((i) => i.code)).toEqual(['unquoted-selector-value']);
+    const issue = issues[0]!;
+    expect([issue.startCol, issue.endCol]).toEqual([13, 20]);
+    expect(issue.message).toContain("label='Sign in'");
+    expect(issue.fixes[0]?.replacement).toBe('"label=\'Sign in\'"');
+    expect([issue.stringStart, issue.stringEnd]).toEqual([6, 21]);
+  });
+
+  it('groups a multi-word spill and keeps the rest of the chain', () => {
+    const issues = validateSelectorLines(['wait "role=button label=Add new item || id=x" 5000']);
+    expect(issues.map((i) => i.code)).toEqual(['unquoted-selector-value']);
+    expect(issues[0]?.fixes[0]?.replacement).toBe('"role=button label=\'Add new item\' || id=x"');
+  });
+
+  it('falls back to double quotes when the value contains an apostrophe', () => {
+    const issues = validateSelectorLines(['click "label=Don\'t save"']);
+    expect(issues.map((i) => i.code)).toEqual(['unterminated-selector-quote']);
+  });
+
+  it('still reports a genuine bare word when the previous value is quoted', () => {
+    expect(codes('click "label=\'Sign in\' button"')).toEqual(['bare-selector-word']);
   });
 
   it('flags unterminated quoted values', () => {
